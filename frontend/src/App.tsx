@@ -70,8 +70,9 @@ function LoadingScreen() {
 function AppRoutes() {
   const { session, profile, profileLoading } = useAuth();
 
-  // Still loading session / profile — show animated loading
-  if (profileLoading && session) {
+  // Show loading screen only on first load (no profile yet).
+  // Once a profile exists, background refreshes are silent — no flash.
+  if (profileLoading && session && !profile) {
     return <LoadingScreen />;
   }
 
