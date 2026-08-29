@@ -38,8 +38,12 @@ export default function AuthPage() {
         await signIn(email, password);
         toast.success('Welcome back!');
       } else {
-        await signUp(email, password, name);
-        toast.success('Account created! Please pick your group.');
+        const res = await signUp(email, password, name);
+        if (res?.session) {
+          toast.success('Account created! Loading group setup…');
+        } else {
+          toast.success('Confirmation email sent! Please check your email and click the confirmation link to continue.', { duration: 7000 });
+        }
       }
     } catch (err: any) {
       toast.error(err.message || 'Something went wrong');
