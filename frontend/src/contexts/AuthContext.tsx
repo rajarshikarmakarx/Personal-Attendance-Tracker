@@ -48,12 +48,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+
       if (session?.access_token) {
-        setProfileLoading(true);
-        fetchProfile();
+        if (event === 'TOKEN_REFRESHED') {
+          // Silent token refresh (e.g. returning to tab) — update session data but
+          // never show loading screen; re-fetch profile quietly in background.
+          fetchProfile();
+        } else {
+          // Actual sign-in or user change — show loading indicator while fetching profile.
+          setProfileLoading(true);
+          fetchProfile();
+        }
       } else {
         setProfile(null);
         setProfileLoading(false);
@@ -61,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const signIn = async (email: string, password: string) => {
