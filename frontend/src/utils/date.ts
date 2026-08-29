@@ -15,22 +15,36 @@ const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
 
 export function format(dateStr: string, fmt: string): string {
   const d = toDateObj(dateStr);
-  return fmt
-    .replace('EEEE', DAYS[d.getDay()])
-    .replace('EEE', DAYS_SHORT[d.getDay()])
-    .replace('MMMM', MONTHS[d.getMonth()])
-    .replace('MMM', MONTHS_SHORT[d.getMonth()])
-    .replace('MM', String(d.getMonth() + 1).padStart(2, '0'))
-    .replace('dd', String(d.getDate()).padStart(2, '0'))
-    .replace('d', String(d.getDate()))
-    .replace('yyyy', String(d.getFullYear()))
-    .replace('yy', String(d.getFullYear()).slice(-2));
+
+  // Use placeholders to avoid later replacements corrupting already-substituted
+  // text (e.g. the 'd' in 'Saturday' being replaced by the day number).
+  const tokens: Record<string, string> = {
+    EEEE: DAYS[d.getDay()],
+    EEE:  DAYS_SHORT[d.getDay()],
+    MMMM: MONTHS[d.getMonth()],
+    MMM:  MONTHS_SHORT[d.getMonth()],
+    MM:   String(d.getMonth() + 1).padStart(2, '0'),
+    dd:   String(d.getDate()).padStart(2, '0'),
+    d:    String(d.getDate()),
+    yyyy: String(d.getFullYear()),
+    yy:   String(d.getFullYear()).slice(-2),
+  };
+
+  // Replace tokens longest-first so e.g. 'EEEE' is consumed before 'EEE',
+  // 'MMMM' before 'MMM', 'MM', 'dd' before 'd', and 'yyyy' before 'yy'.
+  const pattern = /EEEE|EEE|MMMM|MMM|MM|dd|d|yyyy|yy/g;
+  return fmt.replace(pattern, (match) => tokens[match] ?? match);
 }
 
 export function addDays(dateStr: string, n: number): string {
   const d = toDateObj(dateStr);
   d.setDate(d.getDate() + n);
-  return d.toISOString().slice(0, 10);
+  // Use local date components to avoid UTC timezone shift (e.g. in IST +5:30
+  // toISOString() can return the previous day).
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 export function subDays(dateStr: string, n: number): string {
