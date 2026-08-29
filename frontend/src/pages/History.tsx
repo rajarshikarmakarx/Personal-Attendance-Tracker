@@ -8,6 +8,25 @@ import { format, todayStr, getDaysInMonth, getFirstDayOfMonth } from '../utils/d
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'];
 
+/* ── Presently theme tokens ── */
+const C = {
+  void:        '#080b13',
+  panel:       '#111a2c',
+  panelSoft:   '#0e1626',
+  hairline:    'rgba(255,255,255,0.09)',
+  hairlineSoft:'rgba(255,255,255,0.06)',
+  cream:       '#f3ecdd',
+  soft:        '#c7cfe0',
+  muted:       '#8a93ab',
+  gold:        '#e3b76a',
+  goldSoft:    '#f0cd8f',
+  goldDim:     'rgba(227,183,106,0.14)',
+  goldBorder:  'rgba(227,183,106,0.28)',
+  green:       '#5bbf8a',
+  red:         '#d95f6a',
+  yellow:      '#e3b76a',
+};
+
 interface DayData {
   total: number;
   marked: number;
@@ -44,10 +63,7 @@ export default function History() {
         });
         setDayData(newDayData);
       })
-      .catch((err) => {
-        console.error('Failed to load month schedule range:', err);
-        toast.error('Failed to load calendar data');
-      });
+      .catch(() => toast.error('Failed to load calendar data'));
   }, [year, month]);
 
   const handleDayClick = async (dateStr: string) => {
@@ -65,14 +81,12 @@ export default function History() {
 
   const handleUpdate = (entryId: number, newStatus: AttendanceStatus, attendanceId: number | null) => {
     if (!selectedDate) return;
-
     setSelectedSchedule(prev => {
       const updated = prev.map(e =>
         e.timetable_entry_id === entryId
           ? { ...e, status: newStatus, attendance_id: attendanceId }
           : e
       );
-
       setDayData(old => {
         if (!old[selectedDate]) return old;
         return {
@@ -85,7 +99,6 @@ export default function History() {
           }
         };
       });
-
       return updated;
     });
   };
@@ -104,98 +117,109 @@ export default function History() {
   const startPadding = (firstDow + 6) % 7;
 
   const getColor = (data: DayData) => {
-    if (data.marked === 0) return 'var(--text-muted)';
-    if (data.present === data.marked) return 'var(--green)';
-    if (data.present > data.absent) return 'var(--yellow)';
-    return 'var(--red)';
+    if (data.marked === 0) return C.muted;
+    if (data.present === data.marked) return C.green;
+    if (data.present > data.absent) return C.yellow;
+    return C.red;
+  };
+
+  const cardStyle = {
+    background: C.panelSoft,
+    border: `1px solid ${C.hairline}`,
+    borderRadius: 18,
+    padding: '26px',
+    boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
   };
 
   return (
-    <div style={{ maxWidth: 1040, margin: '0 auto', padding: '36px 24px 60px' }}>
+    <div style={{ maxWidth: 1040, margin: '0 auto', padding: '34px 24px 60px' }}>
       <h1
         style={{
-          fontFamily: "'Outfit', 'Inter', sans-serif",
-          fontSize: 32,
-          fontWeight: 800,
-          color: 'var(--text-primary)',
-          marginBottom: 32,
-          letterSpacing: '-1px',
-          animation: 'fadeInUp 0.5s var(--ease-out-expo) both',
+          fontFamily: "'Fraunces', serif",
+          fontSize: 'clamp(24px,3vw,32px)',
+          fontWeight: 500,
+          color: C.cream,
+          marginBottom: 28,
+          letterSpacing: '-0.5px',
+          animation: 'driftUp 0.7s cubic-bezier(0.16,1,0.3,1) both',
         }}
       >
         Calendar History
       </h1>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 28, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24, alignItems: 'start' }}>
         {/* Calendar Card */}
-        <div
-          style={{
-            background: 'var(--bg-card)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-xl)',
-            padding: '28px',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-            animation: 'fadeInUp 0.5s var(--ease-out-expo) 0.05s both',
-          }}
-        >
+        <div style={{ ...cardStyle, animation: 'driftUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.05s both' }}>
           {/* Month Header Nav */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 }}>
             <button
               id="btn-prev-month"
               onClick={prevMonth}
               style={{
-                width: 36,
-                height: 36,
+                width: 34,
+                height: 34,
                 borderRadius: '50%',
-                background: 'rgba(255, 255, 255, 0.04)',
-                border: '1px solid var(--border)',
-                color: 'var(--text-secondary)',
+                background: 'transparent',
+                border: `1px solid ${C.hairline}`,
+                color: C.soft,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                transition: 'all 0.2s',
+                fontSize: 16,
+                transition: 'border-color 0.2s ease, color 0.2s ease',
               }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = C.gold; e.currentTarget.style.color = C.gold; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = C.hairline; e.currentTarget.style.color = C.soft; }}
             >
               ←
             </button>
-            <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 18, color: 'var(--text-primary)' }}>
+            <div
+              style={{
+                fontFamily: "'Fraunces', serif",
+                fontWeight: 500,
+                fontSize: 17,
+                color: C.cream,
+                letterSpacing: '-0.3px',
+              }}
+            >
               {MONTHS[month]} {year}
             </div>
             <button
               id="btn-next-month"
               onClick={nextMonth}
               style={{
-                width: 36,
-                height: 36,
+                width: 34,
+                height: 34,
                 borderRadius: '50%',
-                background: 'rgba(255, 255, 255, 0.04)',
-                border: '1px solid var(--border)',
-                color: 'var(--text-secondary)',
+                background: 'transparent',
+                border: `1px solid ${C.hairline}`,
+                color: C.soft,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                transition: 'all 0.2s',
+                fontSize: 16,
+                transition: 'border-color 0.2s ease, color 0.2s ease',
               }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = C.gold; e.currentTarget.style.color = C.gold; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = C.hairline; e.currentTarget.style.color = C.soft; }}
             >
               →
             </button>
           </div>
 
           {/* Weekday Titles */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6, marginBottom: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 5, marginBottom: 10 }}>
             {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
-              <div key={d} style={{ textAlign: 'center', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.5px', fontFamily: "'JetBrains Mono', monospace" }}>
                 {d}
               </div>
             ))}
           </div>
 
           {/* Calendar Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 5 }}>
             {Array(startPadding).fill(null).map((_, i) => <div key={`pad-${i}`} />)}
             {Array.from({ length: daysInMonth }, (_, i) => {
               const d = i + 1;
@@ -212,50 +236,47 @@ export default function History() {
                   onClick={() => handleDayClick(dateStr)}
                   style={{
                     aspectRatio: '1',
-                    borderRadius: 'var(--radius-sm)',
+                    borderRadius: 9,
                     cursor: 'pointer',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
                     border: isSelected
-                      ? '2px solid #a78bfa'
+                      ? `2px solid ${C.gold}`
                       : isToday
-                      ? '1px solid var(--border-hover)'
-                      : '1px solid rgba(255, 255, 255, 0.03)',
+                      ? `1px solid rgba(227,183,106,0.4)`
+                      : `1px solid ${C.hairlineSoft}`,
                     background: isSelected
-                      ? 'rgba(124, 58, 237, 0.15)'
+                      ? C.goldDim
                       : isToday
-                      ? 'rgba(255, 255, 255, 0.06)'
-                      : 'rgba(255, 255, 255, 0.02)',
-                    transition: 'all 0.2s var(--ease-smooth)',
-                    boxShadow: isSelected ? '0 0 16px var(--glow-purple)' : 'none',
-                    position: 'relative',
+                      ? 'rgba(255,255,255,0.04)'
+                      : 'rgba(255,255,255,0.015)',
+                    transition: 'all 0.2s ease',
                   }}
                 >
                   <div
                     style={{
-                      fontFamily: "'Outfit', sans-serif",
-                      fontSize: 13,
-                      fontWeight: isToday || isSelected ? 800 : 500,
-                      color: isSelected ? '#fff' : isToday ? '#a78bfa' : 'var(--text-secondary)',
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 12,
+                      fontWeight: isToday || isSelected ? 700 : 500,
+                      color: isSelected ? C.goldSoft : isToday ? C.gold : C.soft,
                     }}
                   >
                     {d}
                   </div>
                   {data && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginTop: 4 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 2, marginTop: 3 }}>
                       <div
                         style={{
-                          width: 5,
-                          height: 5,
+                          width: 4,
+                          height: 4,
                           borderRadius: '50%',
                           background: getColor(data),
-                          boxShadow: `0 0 6px ${getColor(data)}`,
                         }}
                       />
                       {hasMissing && (
-                        <div style={{ fontSize: 9, color: 'var(--yellow)', fontWeight: 800 }}>!</div>
+                        <div style={{ fontSize: 8, color: C.yellow, fontWeight: 800 }}>!</div>
                       )}
                     </div>
                   )}
@@ -266,38 +287,35 @@ export default function History() {
         </div>
 
         {/* Day Detail Side Panel */}
-        <div
-          style={{
-            background: 'var(--bg-card)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-xl)',
-            padding: '28px',
-            minHeight: 360,
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-            animation: 'fadeInUp 0.5s var(--ease-out-expo) 0.1s both',
-          }}
-        >
+        <div style={{ ...cardStyle, minHeight: 340, animation: 'driftUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.1s both' }}>
           {!selectedDate ? (
-            <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--text-muted)', fontSize: 14 }}>
-              👈 Select a date on the calendar to view details
+            <div style={{ textAlign: 'center', padding: '70px 0', color: C.muted, fontSize: 13, fontFamily: "'Inter', sans-serif" }}>
+              ← Select a date to view details
             </div>
           ) : loadingSchedule ? (
-            <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--text-muted)', fontSize: 14 }}>
-              Loading day details...
+            <div style={{ textAlign: 'center', padding: '70px 0', color: C.muted, fontSize: 13, fontFamily: "'JetBrains Mono', monospace" }}>
+              Loading…
             </div>
           ) : (
-            <div style={{ animation: 'fadeInScale 0.4s var(--ease-spring) both' }}>
-              <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 20, color: 'var(--text-primary)', marginBottom: 20 }}>
+            <div style={{ animation: 'driftUp 0.5s cubic-bezier(0.16,1,0.3,1) both' }}>
+              <div
+                style={{
+                  fontFamily: "'Fraunces', serif",
+                  fontWeight: 500,
+                  fontSize: 18,
+                  color: C.cream,
+                  marginBottom: 18,
+                  letterSpacing: '-0.3px',
+                }}
+              >
                 {format(selectedDate, 'EEEE, d MMMM')}
               </div>
               {selectedSchedule.length === 0 ? (
-                <div style={{ color: 'var(--text-muted)', fontSize: 13, textAlign: 'center', padding: '60px 0' }}>
+                <div style={{ color: C.muted, fontSize: 13, textAlign: 'center', padding: '50px 0', fontFamily: "'Inter', sans-serif" }}>
                   No classes scheduled on this day
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {selectedSchedule.map((entry, idx) => (
                     <AttendanceCard
                       key={entry.timetable_entry_id}

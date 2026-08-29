@@ -13,19 +13,17 @@ import GroupSetupPage from './pages/GroupSetupPage';
 
 const toastStyles = {
   style: {
-    background: 'rgba(255, 255, 255, 0.06)',
-    color: 'var(--text-primary)',
-    border: '1px solid var(--border)',
-    borderRadius: 14,
+    background: '#111a2c',
+    color: '#f3ecdd',
+    border: '1px solid rgba(255,255,255,0.09)',
+    borderRadius: 12,
     fontSize: 13,
     fontFamily: "'Inter', sans-serif",
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255,255,255,0.05)',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
     padding: '12px 16px',
   },
-  success: { iconTheme: { primary: '#10b981', secondary: '#fff' } },
-  error: { iconTheme: { primary: '#f43f5e', secondary: '#fff' } },
+  success: { iconTheme: { primary: '#5bbf8a', secondary: '#111a2c' } },
+  error: { iconTheme: { primary: '#d95f6a', secondary: '#111a2c' } },
 };
 
 function LoadingScreen() {
@@ -37,52 +35,32 @@ function LoadingScreen() {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100vh',
-        gap: 20,
+        gap: 18,
+        background: '#080b13',
       }}
     >
-      {/* Animated logo */}
-      <div
-        style={{
-          width: 56,
-          height: 56,
-          borderRadius: 16,
-          background: 'var(--accent-gradient)',
-          backgroundSize: '200% 200%',
-          animation: 'gradientShift 3s ease infinite',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: 24,
-          fontWeight: 800,
-          color: '#fff',
-          fontFamily: "'Outfit', sans-serif",
-          boxShadow: '0 8px 32px var(--glow-purple)',
-        }}
-      >
-        A
-      </div>
-      {/* Shimmer bar */}
-      <div
-        style={{
-          width: 120,
-          height: 3,
-          borderRadius: 3,
-          background: 'rgba(255, 255, 255, 0.06)',
-          overflow: 'hidden',
-          position: 'relative',
-        }}
-      >
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'linear-gradient(90deg, transparent, var(--accent-light), transparent)',
-            backgroundSize: '200% 100%',
-            animation: 'shimmer 1.5s linear infinite',
-          }}
+      {/* Logo mark */}
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M12 2.5C12 2.5 15.5 6 15.5 10.5C15.5 14.2 12.8 16.8 12 17.5C11.2 16.8 8.5 14.2 8.5 10.5C8.5 6 12 2.5 12 2.5Z"
+          fill="#e3b76a" opacity="0.9"
         />
+        <circle cx="12" cy="20" r="1.6" fill="#e3b76a" opacity="0.5" />
+      </svg>
+      {/* App name */}
+      <div
+        style={{
+          fontFamily: "'Fraunces', serif",
+          fontWeight: 500,
+          fontSize: 22,
+          color: '#f3ecdd',
+          letterSpacing: '-0.3px',
+        }}
+      >
+        Presently
       </div>
-      <div style={{ color: 'var(--text-muted)', fontSize: 13, fontWeight: 500 }}>
+      {/* Loading indicator */}
+      <div style={{ color: '#8a93ab', fontSize: 12, fontFamily: "'JetBrains Mono', monospace", letterSpacing: '1px' }}>
         Loading…
       </div>
     </div>

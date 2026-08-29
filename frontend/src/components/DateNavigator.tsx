@@ -5,23 +5,55 @@ interface DateNavigatorProps {
   onDateChange: (date: string) => void;
 }
 
-function ArrowIcon({ direction }: { direction: 'left' | 'right' }) {
+/* ── Presently theme tokens ── */
+const C = {
+  panelSoft:   '#0e1626',
+  hairline:    'rgba(255,255,255,0.09)',
+  cream:       '#f3ecdd',
+  soft:        '#c7cfe0',
+  muted:       '#8a93ab',
+  gold:        '#e3b76a',
+  goldDim:     'rgba(227,183,106,0.14)',
+  goldBorder:  'rgba(227,183,106,0.28)',
+};
+
+function ArrowBtn({ id, onClick, direction }: { id: string; onClick: () => void; direction: 'left' | 'right' }) {
   return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 16 16"
-      fill="none"
-      style={{ transform: direction === 'left' ? 'rotate(180deg)' : 'none' }}
+    <button
+      id={id}
+      onClick={onClick}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 40,
+        height: 40,
+        borderRadius: '50%',
+        border: `1px solid ${C.hairline}`,
+        background: 'transparent',
+        color: C.soft,
+        cursor: 'pointer',
+        transition: 'border-color 0.2s ease, color 0.2s ease',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.borderColor = C.gold;
+        e.currentTarget.style.color = C.gold;
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.borderColor = C.hairline;
+        e.currentTarget.style.color = C.soft;
+      }}
     >
-      <path
-        d="M6 3L11 8L6 13"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+      <svg
+        width="15"
+        height="15"
+        viewBox="0 0 16 16"
+        fill="none"
+        style={{ transform: direction === 'left' ? 'rotate(180deg)' : 'none' }}
+      >
+        <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </button>
   );
 }
 
@@ -38,58 +70,20 @@ export default function DateNavigator({ date, onDateChange }: DateNavigatorProps
         alignItems: 'center',
         gap: 16,
         justifyContent: 'center',
-        padding: '16px 0',
+        padding: '14px 0',
       }}
     >
-      {/* Previous */}
-      <button
-        id="btn-prev-date"
-        onClick={() => onDateChange(prev)}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: 42,
-          height: 42,
-          borderRadius: 'var(--radius-full)',
-          border: '1px solid var(--border)',
-          background: 'var(--bg-card)',
-          color: 'var(--text-secondary)',
-          cursor: 'pointer',
-          fontSize: 16,
-          transition: 'all 0.25s var(--ease-smooth)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-        }}
-        onMouseEnter={e => {
-          const t = e.currentTarget;
-          t.style.borderColor = 'var(--border-hover)';
-          t.style.color = 'var(--text-primary)';
-          t.style.background = 'var(--bg-elevated)';
-          t.style.transform = 'scale(1.08)';
-          t.style.boxShadow = '0 0 20px var(--glow-purple)';
-        }}
-        onMouseLeave={e => {
-          const t = e.currentTarget;
-          t.style.borderColor = 'var(--border)';
-          t.style.color = 'var(--text-secondary)';
-          t.style.background = 'var(--bg-card)';
-          t.style.transform = 'scale(1)';
-          t.style.boxShadow = 'none';
-        }}
-      >
-        <ArrowIcon direction="left" />
-      </button>
+      <ArrowBtn id="btn-prev-date" onClick={() => onDateChange(prev)} direction="left" />
 
       {/* Date display */}
-      <div style={{ textAlign: 'center', minWidth: 220 }}>
+      <div style={{ textAlign: 'center', minWidth: 210 }}>
         <div
           style={{
-            fontFamily: "'Outfit', 'Inter', sans-serif",
-            fontWeight: 700,
+            fontFamily: "'Fraunces', serif",
+            fontWeight: 500,
             fontSize: 20,
-            color: 'var(--text-primary)',
-            letterSpacing: '-0.5px',
+            color: C.cream,
+            letterSpacing: '-0.4px',
             lineHeight: 1.3,
           }}
         >
@@ -100,16 +94,16 @@ export default function DateNavigator({ date, onDateChange }: DateNavigatorProps
             style={{
               display: 'inline-block',
               marginTop: 6,
-              fontSize: 10,
+              fontSize: 9,
               fontWeight: 700,
-              color: '#a78bfa',
+              color: C.gold,
               textTransform: 'uppercase',
               letterSpacing: '1.5px',
-              padding: '3px 12px',
-              borderRadius: 'var(--radius-full)',
-              background: 'rgba(124, 58, 237, 0.12)',
-              border: '1px solid rgba(124, 58, 237, 0.25)',
-              animation: 'pulseGlow 2.5s ease-in-out infinite',
+              padding: '3px 10px',
+              borderRadius: 999,
+              background: C.goldDim,
+              border: `1px solid ${C.goldBorder}`,
+              fontFamily: "'JetBrains Mono', monospace",
             }}
           >
             Today
@@ -117,45 +111,7 @@ export default function DateNavigator({ date, onDateChange }: DateNavigatorProps
         )}
       </div>
 
-      {/* Next */}
-      <button
-        id="btn-next-date"
-        onClick={() => onDateChange(next)}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: 42,
-          height: 42,
-          borderRadius: 'var(--radius-full)',
-          border: '1px solid var(--border)',
-          background: 'var(--bg-card)',
-          color: 'var(--text-secondary)',
-          cursor: 'pointer',
-          fontSize: 16,
-          transition: 'all 0.25s var(--ease-smooth)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-        }}
-        onMouseEnter={e => {
-          const t = e.currentTarget;
-          t.style.borderColor = 'var(--border-hover)';
-          t.style.color = 'var(--text-primary)';
-          t.style.background = 'var(--bg-elevated)';
-          t.style.transform = 'scale(1.08)';
-          t.style.boxShadow = '0 0 20px var(--glow-purple)';
-        }}
-        onMouseLeave={e => {
-          const t = e.currentTarget;
-          t.style.borderColor = 'var(--border)';
-          t.style.color = 'var(--text-secondary)';
-          t.style.background = 'var(--bg-card)';
-          t.style.transform = 'scale(1)';
-          t.style.boxShadow = 'none';
-        }}
-      >
-        <ArrowIcon direction="right" />
-      </button>
+      <ArrowBtn id="btn-next-date" onClick={() => onDateChange(next)} direction="right" />
     </div>
   );
 }

@@ -7,10 +7,27 @@ import StatusBadge from '../components/StatusBadge';
 import ProgressBar from '../components/ProgressBar';
 import { format, todayStr, subDays } from '../utils/date';
 
+/* ── Presently theme tokens ── */
+const C = {
+  void:        '#080b13',
+  panel:       '#111a2c',
+  panelSoft:   '#0e1626',
+  hairline:    'rgba(255,255,255,0.09)',
+  hairlineSoft:'rgba(255,255,255,0.06)',
+  cream:       '#f3ecdd',
+  soft:        '#c7cfe0',
+  muted:       '#8a93ab',
+  gold:        '#e3b76a',
+  goldSoft:    '#f0cd8f',
+  goldDim:     'rgba(227,183,106,0.14)',
+  goldBorder:  'rgba(227,183,106,0.28)',
+  green:       '#5bbf8a',
+  red:         '#d95f6a',
+};
+
 async function fetchSubjectHistory(subjectId: number, weeks = 8): Promise<Array<{ date: string; entry: ScheduleEntry }>> {
   const today = todayStr();
   const result: Array<{ date: string; entry: ScheduleEntry }> = [];
-
   const promises = Array.from({ length: weeks * 7 }, (_, i) => {
     const dateStr = subDays(today, i);
     return getSchedule(dateStr).then(entries => {
@@ -21,16 +38,22 @@ async function fetchSubjectHistory(subjectId: number, weeks = 8): Promise<Array<
       }
     }).catch(() => {});
   });
-
   await Promise.all(promises);
   return result.sort((a, b) => b.date.localeCompare(a.date));
 }
 
 function getColor(pct: number): string {
-  if (pct >= 85) return 'var(--green)';
-  if (pct >= 75) return 'var(--yellow)';
-  return 'var(--red)';
+  if (pct >= 85) return C.green;
+  if (pct >= 75) return C.gold;
+  return C.red;
 }
+
+const cardStyle = {
+  background: C.panelSoft,
+  border: `1px solid ${C.hairline}`,
+  borderRadius: 18,
+  boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
+};
 
 export default function SubjectDetail() {
   const { subjectId } = useParams<{ subjectId: string }>();
@@ -44,12 +67,7 @@ export default function SubjectDetail() {
   useEffect(() => {
     if (!subjectId) return;
     const id = Number(subjectId);
-
-    Promise.all([
-      getSubject(id),
-      getTeacherStats(),
-      fetchSubjectHistory(id),
-    ])
+    Promise.all([getSubject(id), getTeacherStats(), fetchSubjectHistory(id)])
       .then(([sub, teachers, hist]) => {
         setSubject(sub);
         setTeacherStats(teachers.filter(t => t.subject_id === id));
@@ -62,7 +80,7 @@ export default function SubjectDetail() {
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>
-        <div style={{ color: 'var(--text-muted)', fontSize: 14 }}>Loading details...</div>
+        <div style={{ color: C.muted, fontSize: 13, fontFamily: "'JetBrains Mono', monospace" }}>Loading…</div>
       </div>
     );
   }
@@ -70,82 +88,100 @@ export default function SubjectDetail() {
   if (!subject) {
     return (
       <div style={{ textAlign: 'center', padding: '80px 20px' }}>
-        <div style={{ color: 'var(--text-muted)' }}>Subject not found</div>
-        <button onClick={() => navigate(-1)} style={{ marginTop: 16, color: '#a78bfa', background: 'none', border: 'none', cursor: 'pointer' }}>
+        <div style={{ color: C.muted, fontFamily: "'Inter', sans-serif" }}>Subject not found</div>
+        <button
+          onClick={() => navigate(-1)}
+          style={{ marginTop: 16, color: C.gold, background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Inter', sans-serif", fontSize: 14 }}
+        >
           ← Go back
         </button>
       </div>
     );
   }
 
-  const totalPresent = teacherStats.reduce((s, t) => s + t.present, 0);
-  const totalAbsent = teacherStats.reduce((s, t) => s + t.absent, 0);
+  const totalPresent   = teacherStats.reduce((s, t) => s + t.present, 0);
+  const totalAbsent    = teacherStats.reduce((s, t) => s + t.absent, 0);
   const totalCancelled = teacherStats.reduce((s, t) => s + t.cancelled, 0);
   const totalConducted = totalPresent + totalAbsent;
-  const totalPct = totalConducted > 0 ? (totalPresent / totalConducted) * 100 : 0;
+  const totalPct       = totalConducted > 0 ? (totalPresent / totalConducted) * 100 : 0;
 
   const filteredHistory = selectedTeacher
     ? history.filter(h => h.entry.teacher.id === selectedTeacher)
     : history;
 
   return (
-    <div style={{ maxWidth: 940, margin: '0 auto', padding: '36px 24px 60px' }}>
+    <div style={{ maxWidth: 940, margin: '0 auto', padding: '34px 24px 60px' }}>
       <button
         onClick={() => navigate(-1)}
         style={{
           background: 'none',
           border: 'none',
-          color: 'var(--text-muted)',
+          color: C.muted,
           cursor: 'pointer',
           fontSize: 13,
           fontWeight: 600,
-          marginBottom: 24,
+          marginBottom: 22,
           padding: 0,
           display: 'flex',
           alignItems: 'center',
           gap: 6,
           transition: 'color 0.2s',
-          animation: 'fadeInUp 0.5s var(--ease-out-expo) both',
+          fontFamily: "'Inter', sans-serif",
+          animation: 'driftUp 0.7s cubic-bezier(0.16,1,0.3,1) both',
         }}
+        onMouseEnter={e => (e.currentTarget.style.color = C.soft)}
+        onMouseLeave={e => (e.currentTarget.style.color = C.muted)}
       >
-        ← Back to Dashboard
+        ← Back
       </button>
 
       {/* Subject Header Card */}
       <div
         style={{
-          background: 'var(--bg-card)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-xl)',
-          padding: '32px',
-          marginBottom: 24,
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-          animation: 'fadeInUp 0.5s var(--ease-out-expo) 0.05s both',
+          ...cardStyle,
+          padding: '30px',
+          marginBottom: 20,
+          animation: 'driftUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.05s both',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 }} className="subject-header-row">
           <div>
-            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 26, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.5px', marginBottom: 4 }}>
+            <div
+              style={{
+                fontFamily: "'Fraunces', serif",
+                fontSize: 'clamp(20px,2.5vw,26px)',
+                fontWeight: 500,
+                color: C.cream,
+                letterSpacing: '-0.3px',
+                marginBottom: 4,
+              }}
+            >
               {subject.name}
             </div>
-            <div style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>{subject.code}</div>
+            <div style={{ fontSize: 12, color: C.muted, fontWeight: 600, fontFamily: "'JetBrains Mono', monospace" }}>{subject.code}</div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 44, fontWeight: 900, color: getColor(totalPct), lineHeight: 1 }}>
+            <div
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 40,
+                fontWeight: 500,
+                color: getColor(totalPct),
+                lineHeight: 1,
+              }}
+            >
               {totalConducted > 0 ? `${totalPct.toFixed(1)}%` : '—'}
             </div>
-            <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 6, fontWeight: 500 }}>
+            <div style={{ fontSize: 12, color: C.soft, marginTop: 5, fontFamily: "'Inter', sans-serif" }}>
               {totalPresent}/{totalConducted} attended
             </div>
           </div>
         </div>
-        <ProgressBar percentage={totalConducted > 0 ? totalPct : 0} height={8} />
-        <div style={{ display: 'flex', gap: 20, marginTop: 16, fontSize: 13, fontWeight: 600 }}>
-          <span style={{ color: 'var(--green)' }}>Present: {totalPresent}</span>
-          <span style={{ color: 'var(--red)' }}>Absent: {totalAbsent}</span>
-          <span style={{ color: 'var(--text-muted)' }}>Cancelled: {totalCancelled}</span>
+        <ProgressBar percentage={totalConducted > 0 ? totalPct : 0} height={7} />
+        <div style={{ display: 'flex', gap: 18, marginTop: 14, fontSize: 13, fontWeight: 600, fontFamily: "'Inter', sans-serif" }}>
+          <span style={{ color: C.green }}>Present: {totalPresent}</span>
+          <span style={{ color: C.red }}>Absent: {totalAbsent}</span>
+          <span style={{ color: C.muted }}>Cancelled: {totalCancelled}</span>
         </div>
       </div>
 
@@ -153,33 +189,45 @@ export default function SubjectDetail() {
       {teacherStats.length > 0 && (
         <div
           style={{
-            background: 'var(--bg-card)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-xl)',
-            padding: '28px 32px',
-            marginBottom: 24,
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-            animation: 'fadeInUp 0.5s var(--ease-out-expo) 0.1s both',
+            ...cardStyle,
+            padding: '26px 28px',
+            marginBottom: 20,
+            animation: 'driftUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.1s both',
           }}
         >
-          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 18, color: 'var(--text-primary)', marginBottom: 20 }}>
-            Teacher Performance Breakdown
+          <div
+            style={{
+              fontFamily: "'Fraunces', serif",
+              fontWeight: 500,
+              fontSize: 17,
+              color: C.cream,
+              marginBottom: 18,
+              letterSpacing: '-0.3px',
+            }}
+          >
+            Teacher Breakdown
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {teacherStats.map(t => (
-              <div key={t.teacher_id} style={{ padding: '12px 16px', borderRadius: 'var(--radius-md)', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
+              <div
+                key={t.teacher_id}
+                style={{
+                  padding: '12px 14px',
+                  borderRadius: 12,
+                  background: 'rgba(255,255,255,0.02)',
+                  border: `1px solid ${C.hairlineSoft}`,
+                }}
+              >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>{t.teacher_name}</span>
-                  <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: C.cream, fontFamily: "'Inter', sans-serif" }}>{t.teacher_name}</span>
+                  <span style={{ fontSize: 12, color: C.soft, fontFamily: "'Inter', sans-serif" }}>
                     {t.present}/{t.conducted}
-                    <span style={{ color: getColor(t.percentage), marginLeft: 8, fontWeight: 800 }}>
+                    <span style={{ color: getColor(t.percentage), marginLeft: 8, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>
                       {t.conducted > 0 ? `${t.percentage.toFixed(1)}%` : '—'}
                     </span>
                   </span>
                 </div>
-                <ProgressBar percentage={t.conducted > 0 ? t.percentage : 0} height={5} />
+                <ProgressBar percentage={t.conducted > 0 ? t.percentage : 0} height={4} />
               </div>
             ))}
           </div>
@@ -189,50 +237,57 @@ export default function SubjectDetail() {
       {/* Attendance History Card */}
       <div
         style={{
-          background: 'var(--bg-card)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-xl)',
-          padding: '28px 32px',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-          animation: 'fadeInUp 0.5s var(--ease-out-expo) 0.15s both',
+          ...cardStyle,
+          padding: '26px 28px',
+          animation: 'driftUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.15s both',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 18, color: 'var(--text-primary)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+          <div
+            style={{
+              fontFamily: "'Fraunces', serif",
+              fontWeight: 500,
+              fontSize: 17,
+              color: C.cream,
+              letterSpacing: '-0.3px',
+            }}
+          >
             Log History (Past 8 Weeks)
           </div>
           {teacherStats.length > 1 && (
-            <div style={{ display: 'flex', gap: 6 }}>
+            <div style={{ display: 'flex', gap: 5 }}>
               <button
                 onClick={() => setSelectedTeacher(null)}
                 style={{
-                  padding: '5px 12px',
-                  borderRadius: 'var(--radius-full)',
-                  border: '1px solid var(--border)',
-                  background: selectedTeacher === null ? 'var(--accent-gradient)' : 'transparent',
-                  color: selectedTeacher === null ? '#fff' : 'var(--text-muted)',
+                  padding: '4px 10px',
+                  borderRadius: 999,
+                  border: `1px solid ${selectedTeacher === null ? C.gold : C.hairline}`,
+                  background: selectedTeacher === null ? C.goldDim : 'transparent',
+                  color: selectedTeacher === null ? C.gold : C.muted,
                   cursor: 'pointer',
-                  fontSize: 12,
-                  fontWeight: 600,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  fontFamily: "'Inter', sans-serif",
+                  transition: 'all 0.2s ease',
                 }}
               >
-                All Teachers
+                All
               </button>
               {teacherStats.map(t => (
                 <button
                   key={t.teacher_id}
                   onClick={() => setSelectedTeacher(t.teacher_id)}
                   style={{
-                    padding: '5px 12px',
-                    borderRadius: 'var(--radius-full)',
-                    border: '1px solid var(--border)',
-                    background: selectedTeacher === t.teacher_id ? 'var(--accent-gradient)' : 'transparent',
-                    color: selectedTeacher === t.teacher_id ? '#fff' : 'var(--text-muted)',
+                    padding: '4px 10px',
+                    borderRadius: 999,
+                    border: `1px solid ${selectedTeacher === t.teacher_id ? C.gold : C.hairline}`,
+                    background: selectedTeacher === t.teacher_id ? C.goldDim : 'transparent',
+                    color: selectedTeacher === t.teacher_id ? C.gold : C.muted,
                     cursor: 'pointer',
-                    fontSize: 12,
-                    fontWeight: 600,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    fontFamily: "'Inter', sans-serif",
+                    transition: 'all 0.2s ease',
                   }}
                 >
                   {t.teacher_name}
@@ -243,7 +298,7 @@ export default function SubjectDetail() {
         </div>
 
         {filteredHistory.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '50px 0', color: 'var(--text-muted)', fontSize: 13 }}>
+          <div style={{ textAlign: 'center', padding: '44px 0', color: C.muted, fontSize: 13, fontFamily: "'Inter', sans-serif" }}>
             No attendance recorded for this filter in the past 8 weeks
           </div>
         ) : (
@@ -252,35 +307,35 @@ export default function SubjectDetail() {
               style={{
                 display: 'grid',
                 gridTemplateColumns: '1fr 1.2fr 1fr',
-                padding: '10px 12px',
-                borderBottom: '1px solid var(--border-subtle)',
+                padding: '8px 10px',
+                borderBottom: `1px solid ${C.hairlineSoft}`,
                 marginBottom: 6,
               }}
             >
               {['Date', 'Teacher', 'Status'].map(h => (
-                <div key={h} style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                <div key={h} style={{ fontSize: 10, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '1px', fontFamily: "'JetBrains Mono', monospace" }}>
                   {h}
                 </div>
               ))}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               {filteredHistory.map(({ date, entry }) => (
                 <div
                   key={`${date}-${entry.timetable_entry_id}`}
                   style={{
                     display: 'grid',
                     gridTemplateColumns: '1fr 1.2fr 1fr',
-                    padding: '12px',
-                    borderRadius: 'var(--radius-sm)',
-                    background: 'rgba(255, 255, 255, 0.015)',
-                    border: '1px solid rgba(255, 255, 255, 0.02)',
+                    padding: '11px 10px',
+                    borderRadius: 9,
+                    background: 'rgba(255,255,255,0.015)',
+                    border: `1px solid ${C.hairlineSoft}`,
                     alignItems: 'center',
                   }}
                 >
-                  <div style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 500 }}>
+                  <div style={{ fontSize: 12, color: C.soft, fontFamily: "'Inter', sans-serif" }}>
                     {format(date, 'EEE, d MMM yyyy')}
                   </div>
-                  <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                  <div style={{ fontSize: 12, color: C.muted, fontFamily: "'Inter', sans-serif" }}>
                     {entry.teacher.name}
                   </div>
                   <div>

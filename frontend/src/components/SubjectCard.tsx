@@ -9,22 +9,32 @@ interface SubjectCardProps {
   index?: number;
 }
 
+/* ── Presently theme tokens ── */
+const C = {
+  void:        '#080b13',
+  panel:       '#111a2c',
+  panelSoft:   '#0e1626',
+  hairline:    'rgba(255,255,255,0.09)',
+  hairlineSoft:'rgba(255,255,255,0.06)',
+  cream:       '#f3ecdd',
+  soft:        '#c7cfe0',
+  muted:       '#8a93ab',
+  gold:        '#e3b76a',
+  goldDim:     'rgba(227,183,106,0.14)',
+  green:       '#5bbf8a',
+  red:         '#d95f6a',
+};
+
 function getColor(pct: number): string {
-  if (pct >= 85) return 'var(--green)';
-  if (pct >= 75) return 'var(--yellow)';
-  return 'var(--red)';
+  if (pct >= 85) return C.green;
+  if (pct >= 75) return C.gold;
+  return C.red;
 }
 
-function getGlow(pct: number): string {
-  if (pct >= 85) return 'var(--green-glow)';
-  if (pct >= 75) return 'rgba(245, 158, 11, 0.3)';
-  return 'var(--red-glow)';
-}
-
-function getGradient(pct: number): string {
-  if (pct >= 85) return 'linear-gradient(180deg, #059669, #10b981)';
-  if (pct >= 75) return 'linear-gradient(180deg, #d97706, #f59e0b)';
-  return 'linear-gradient(180deg, #e11d48, #f43f5e)';
+function getStripe(pct: number): string {
+  if (pct >= 85) return `linear-gradient(180deg, ${C.green}, rgba(91,191,138,0.4))`;
+  if (pct >= 75) return `linear-gradient(180deg, ${C.gold}, rgba(227,183,106,0.4))`;
+  return `linear-gradient(180deg, ${C.red}, rgba(217,95,106,0.4))`;
 }
 
 export default function SubjectCard({ stats, teacherStats, index = 0 }: SubjectCardProps) {
@@ -32,25 +42,19 @@ export default function SubjectCard({ stats, teacherStats, index = 0 }: SubjectC
   const [hovered, setHovered] = useState(false);
   const navigate = useNavigate();
   const color = getColor(stats.percentage);
-  const glow = getGlow(stats.percentage);
 
   return (
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: 'var(--bg-card)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        border: `1px solid ${hovered ? 'var(--border-hover)' : 'var(--border)'}`,
-        borderRadius: 'var(--radius-lg)',
+        background: C.panelSoft,
+        border: `1px solid ${hovered ? 'rgba(227,183,106,0.25)' : C.hairline}`,
+        borderRadius: 14,
         overflow: 'hidden',
-        transition: 'all 0.3s var(--ease-smooth)',
+        transition: 'border-color 0.25s ease, transform 0.25s ease',
         transform: hovered ? 'translateY(-3px)' : 'translateY(0)',
-        boxShadow: hovered
-          ? `0 16px 48px rgba(0, 0, 0, 0.25), 0 0 30px ${glow}`
-          : '0 4px 16px rgba(0, 0, 0, 0.12)',
-        animation: `fadeInUp 0.5s var(--ease-out-expo) ${index * 0.07}s both`,
+        animation: `driftUp 0.7s cubic-bezier(0.16,1,0.3,1) ${index * 0.07}s both`,
         position: 'relative',
       }}
     >
@@ -62,66 +66,64 @@ export default function SubjectCard({ stats, teacherStats, index = 0 }: SubjectC
           left: 0,
           bottom: 0,
           width: 3,
-          background: getGradient(stats.percentage),
+          background: getStripe(stats.percentage),
           borderRadius: '3px 0 0 3px',
-          opacity: hovered ? 1 : 0.6,
-          transition: 'opacity 0.3s ease',
+          opacity: hovered ? 1 : 0.7,
+          transition: 'opacity 0.25s ease',
         }}
       />
 
       {/* Main row */}
       <div
-        style={{ padding: '20px 22px 20px 26px', cursor: 'pointer' }}
+        style={{ padding: '18px 20px 18px 24px', cursor: 'pointer' }}
         onClick={() => navigate(`/subjects/${stats.subject_id}`)}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
           <div>
             <div
               style={{
-                fontFamily: "'Outfit', 'Inter', sans-serif",
-                fontWeight: 700,
-                fontSize: 16,
-                color: 'var(--text-primary)',
+                fontFamily: "'Fraunces', serif",
+                fontWeight: 500,
+                fontSize: 15,
+                color: C.cream,
                 marginBottom: 3,
-                letterSpacing: '-0.3px',
+                letterSpacing: '-0.2px',
               }}
             >
               {stats.subject_name}
             </div>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>
+            <div style={{ fontSize: 11, color: C.muted, fontFamily: "'JetBrains Mono', monospace" }}>
               {stats.subject_code}
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
             <div
               style={{
-                fontFamily: "'Outfit', 'Inter', sans-serif",
-                fontSize: 24,
-                fontWeight: 800,
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 22,
+                fontWeight: 500,
                 color,
                 lineHeight: 1,
-                letterSpacing: '-1px',
-                textShadow: hovered ? `0 0 20px ${glow}` : 'none',
-                transition: 'text-shadow 0.3s ease',
+                letterSpacing: '-0.5px',
               }}
             >
               {stats.conducted > 0 ? `${stats.percentage.toFixed(1)}%` : '—'}
             </div>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3, fontWeight: 500 }}>
+            <div style={{ fontSize: 11, color: C.muted, marginTop: 3, fontFamily: "'Inter', sans-serif" }}>
               {stats.present}/{stats.conducted}
             </div>
           </div>
         </div>
 
-        <ProgressBar percentage={stats.conducted > 0 ? stats.percentage : 0} height={5} />
+        <ProgressBar percentage={stats.conducted > 0 ? stats.percentage : 0} height={4} />
 
-        <div style={{ display: 'flex', gap: 16, marginTop: 12 }}>
+        <div style={{ display: 'flex', gap: 14, marginTop: 10 }}>
           {[
-            { label: 'P', val: stats.present, color: 'var(--green)' },
-            { label: 'A', val: stats.absent, color: 'var(--red)' },
-            { label: 'C', val: stats.cancelled, color: 'var(--text-muted)' },
+            { label: 'P', val: stats.present,   color: C.green },
+            { label: 'A', val: stats.absent,    color: C.red   },
+            { label: 'C', val: stats.cancelled, color: C.muted },
           ].map(({ label, val, color: c }) => (
-            <span key={label} style={{ fontSize: 12, color: c, fontWeight: 600, letterSpacing: '0.3px' }}>
+            <span key={label} style={{ fontSize: 11, color: c, fontWeight: 600, fontFamily: "'JetBrains Mono', monospace" }}>
               {label}: {val}
             </span>
           ))}
@@ -133,8 +135,8 @@ export default function SubjectCard({ stats, teacherStats, index = 0 }: SubjectC
         <>
           <div
             style={{
-              borderTop: '1px solid var(--border-subtle)',
-              padding: '10px 22px 10px 26px',
+              borderTop: `1px solid ${C.hairlineSoft}`,
+              padding: '9px 20px 9px 24px',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -145,25 +147,21 @@ export default function SubjectCard({ stats, teacherStats, index = 0 }: SubjectC
               e.stopPropagation();
               setExpanded(prev => !prev);
             }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLElement).style.background = 'var(--bg-elevated)';
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLElement).style.background = 'transparent';
-            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.02)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
           >
-            <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>
+            <span style={{ fontSize: 11, color: C.muted, fontFamily: "'Inter', sans-serif" }}>
               {teacherStats.length} teacher{teacherStats.length > 1 ? 's' : ''}
             </span>
             <svg
-              width="14"
-              height="14"
+              width="13"
+              height="13"
               viewBox="0 0 14 14"
               fill="none"
               style={{
                 transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                transition: 'transform 0.3s var(--ease-smooth)',
-                color: 'var(--text-muted)',
+                transition: 'transform 0.25s ease',
+                color: C.muted,
               }}
             >
               <path d="M3 5L7 9L11 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -173,11 +171,11 @@ export default function SubjectCard({ stats, teacherStats, index = 0 }: SubjectC
           {expanded && (
             <div
               style={{
-                borderTop: '1px solid var(--border-subtle)',
-                padding: '14px 22px 14px 26px',
+                borderTop: `1px solid ${C.hairlineSoft}`,
+                padding: '12px 20px 12px 24px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 12,
+                gap: 10,
                 animation: 'slideDown 0.3s var(--ease-out-expo) both',
               }}
             >
@@ -188,32 +186,32 @@ export default function SubjectCard({ stats, teacherStats, index = 0 }: SubjectC
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    padding: '10px 14px',
-                    borderRadius: 'var(--radius-sm)',
-                    background: 'rgba(255, 255, 255, 0.02)',
-                    border: '1px solid var(--border-subtle)',
+                    padding: '9px 12px',
+                    borderRadius: 9,
+                    background: 'rgba(255,255,255,0.02)',
+                    border: `1px solid ${C.hairlineSoft}`,
                   }}
                 >
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: C.cream, fontFamily: "'Inter', sans-serif" }}>
                       {t.teacher_name}
                     </div>
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+                    <div style={{ fontSize: 10, color: C.muted, marginTop: 2, fontFamily: "'JetBrains Mono', monospace" }}>
                       {t.present}/{t.conducted} classes
                     </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, maxWidth: 200, marginLeft: 20 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 9, flex: 1, maxWidth: 180, marginLeft: 16 }}>
                     <div style={{ flex: 1 }}>
-                      <ProgressBar percentage={t.conducted > 0 ? t.percentage : 0} height={4} />
+                      <ProgressBar percentage={t.conducted > 0 ? t.percentage : 0} height={3} />
                     </div>
                     <span
                       style={{
-                        fontSize: 13,
-                        fontWeight: 700,
+                        fontSize: 12,
+                        fontWeight: 500,
                         color: getColor(t.percentage),
-                        minWidth: 44,
+                        minWidth: 40,
                         textAlign: 'right',
-                        fontFamily: "'Outfit', 'Inter', sans-serif",
+                        fontFamily: "'JetBrains Mono', monospace",
                       }}
                     >
                       {t.conducted > 0 ? `${t.percentage.toFixed(1)}%` : '—'}

@@ -3,14 +3,27 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import { createProfile } from '../api/client';
 
+/* ── Presently theme tokens ── */
+const C = {
+  void:        '#080b13',
+  panel:       '#111a2c',
+  panelSoft:   '#0e1626',
+  hairline:    'rgba(255,255,255,0.09)',
+  hairlineSoft:'rgba(255,255,255,0.06)',
+  cream:       '#f3ecdd',
+  soft:        '#c7cfe0',
+  muted:       '#8a93ab',
+  gold:        '#e3b76a',
+  goldSoft:    '#f0cd8f',
+};
+
 const GROUPS = [
   {
     number: 1,
     title: 'Group 1',
     badge: 'Gr. 1',
-    color: '#7c3aed',
-    glow: 'rgba(124, 58, 237, 0.4)',
-    gradient: 'linear-gradient(135deg, rgba(124, 58, 237, 0.2), rgba(99, 102, 241, 0.05))',
+    accentColor: '#e3b76a',
+    accentDim: 'rgba(227,183,106,0.14)',
     highlights: [
       'ECE Lab · Mon (ICT502)',
       'Manufacturing Lab · Wed (CME 214)',
@@ -22,9 +35,8 @@ const GROUPS = [
     number: 2,
     title: 'Group 2',
     badge: 'Gr. 2',
-    color: '#10b981',
-    glow: 'rgba(16, 185, 129, 0.4)',
-    gradient: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.05))',
+    accentColor: '#5bbf8a',
+    accentDim: 'rgba(91,191,138,0.12)',
     highlights: [
       'ECE Lab · Mon (ICT401)',
       'Mechanics Lab · Wed (CME B12)',
@@ -41,7 +53,6 @@ export default function GroupSetupPage() {
 
   const confirm = async () => {
     if (!selected) return;
-
     setLoading(true);
     try {
       await createProfile(selected);
@@ -67,65 +78,45 @@ export default function GroupSetupPage() {
         alignItems: 'center',
         justifyContent: 'center',
         padding: 24,
+        background: C.void,
         position: 'relative',
         overflow: 'hidden',
       }}
     >
-      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
-        <div
-          style={{
-            position: 'absolute',
-            width: 600,
-            height: 600,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(124, 58, 237, 0.12) 0%, transparent 70%)',
-            top: '-20%',
-            left: '20%',
-            filter: 'blur(70px)',
-            animation: 'orbFloat 20s ease-in-out infinite',
-          }}
-        />
-      </div>
+      <style>{`
+        @keyframes driftUp {
+          from { opacity:0; transform:translateY(18px); }
+          to   { opacity:1; transform:translateY(0); }
+        }
+      `}</style>
 
       <div
         style={{
           width: '100%',
-          maxWidth: 620,
+          maxWidth: 600,
           position: 'relative',
           zIndex: 1,
-          animation: 'fadeInScale 0.6s var(--ease-spring) both',
+          animation: 'driftUp 0.7s cubic-bezier(0.16,1,0.3,1) both',
         }}
       >
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: 40 }}>
-          <div
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: 18,
-              margin: '0 auto 20px',
-              background: 'var(--accent-gradient)',
-              backgroundSize: '200% 200%',
-              animation: 'gradientShift 4s ease infinite',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 26,
-              fontWeight: 800,
-              color: '#fff',
-              boxShadow: '0 8px 32px var(--glow-purple)',
-              fontFamily: "'Outfit', sans-serif",
-            }}
-          >
-            A
+        <div style={{ textAlign: 'center', marginBottom: 36 }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 18 }}>
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M12 2.5C12 2.5 15.5 6 15.5 10.5C15.5 14.2 12.8 16.8 12 17.5C11.2 16.8 8.5 14.2 8.5 10.5C8.5 6 12 2.5 12 2.5Z"
+                fill={C.gold} opacity="0.9"
+              />
+              <circle cx="12" cy="20" r="1.6" fill={C.gold} opacity="0.5" />
+            </svg>
           </div>
           <h1
             style={{
-              fontFamily: "'Outfit', 'Inter', sans-serif",
-              fontSize: 32,
-              fontWeight: 800,
-              color: 'var(--text-primary)',
-              letterSpacing: '-1px',
+              fontFamily: "'Fraunces', serif",
+              fontWeight: 500,
+              fontSize: 'clamp(26px,3.5vw,34px)',
+              color: C.cream,
+              letterSpacing: '-0.6px',
               marginBottom: 10,
             }}
           >
@@ -134,10 +125,11 @@ export default function GroupSetupPage() {
           <p
             style={{
               fontSize: 14,
-              color: 'var(--text-muted)',
-              lineHeight: 1.6,
-              maxWidth: 400,
+              color: C.muted,
+              lineHeight: 1.65,
+              maxWidth: 380,
               margin: '0 auto',
+              fontFamily: "'Inter', sans-serif",
             }}
           >
             Pick your assigned lab group to initialize your personalized weekly timetable.
@@ -148,9 +140,9 @@ export default function GroupSetupPage() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(270px, 1fr))',
-            gap: 20,
-            marginBottom: 32,
+            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+            gap: 18,
+            marginBottom: 28,
           }}
         >
           {GROUPS.map(g => {
@@ -161,18 +153,16 @@ export default function GroupSetupPage() {
                 id={`btn-group-${g.number}`}
                 onClick={() => setSelected(g.number)}
                 style={{
-                  background: isSelected ? g.gradient : 'rgba(255, 255, 255, 0.03)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
-                  border: `2px solid ${isSelected ? g.color : 'var(--border)'}`,
-                  borderRadius: 'var(--radius-lg)',
-                  padding: '32px 28px',
+                  background: isSelected ? g.accentDim : C.panelSoft,
+                  border: `${isSelected ? 2 : 1}px solid ${isSelected ? g.accentColor : C.hairline}`,
+                  borderRadius: 16,
+                  padding: '28px 24px',
                   cursor: 'pointer',
                   textAlign: 'left',
-                  transition: 'all 0.3s var(--ease-smooth)',
+                  transition: 'all 0.25s ease',
                   boxShadow: isSelected
-                    ? `0 16px 48px rgba(0,0,0,0.3), 0 0 30px ${g.glow}`
-                    : '0 4px 16px rgba(0,0,0,0.15)',
+                    ? `0 8px 32px rgba(0,0,0,0.25), 0 0 20px ${g.accentColor}20`
+                    : '0 2px 12px rgba(0,0,0,0.15)',
                   transform: isSelected ? 'translateY(-4px)' : 'none',
                   fontFamily: "'Inter', sans-serif",
                   position: 'relative',
@@ -184,15 +174,16 @@ export default function GroupSetupPage() {
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    padding: '5px 14px',
-                    borderRadius: 'var(--radius-full)',
-                    background: isSelected ? g.color : 'rgba(255, 255, 255, 0.06)',
-                    color: isSelected ? '#fff' : 'var(--text-muted)',
-                    fontSize: 12,
+                    padding: '4px 12px',
+                    borderRadius: 999,
+                    background: isSelected ? g.accentColor : 'rgba(255,255,255,0.06)',
+                    color: isSelected ? '#1a1306' : C.muted,
+                    fontSize: 11,
                     fontWeight: 700,
-                    marginBottom: 16,
+                    marginBottom: 14,
                     letterSpacing: '0.5px',
-                    transition: 'all 0.3s ease',
+                    transition: 'all 0.25s ease',
+                    fontFamily: "'JetBrains Mono', monospace",
                   }}
                 >
                   {g.badge}
@@ -200,57 +191,54 @@ export default function GroupSetupPage() {
 
                 <div
                   style={{
-                    fontFamily: "'Outfit', sans-serif",
-                    fontSize: 22,
-                    fontWeight: 800,
-                    color: 'var(--text-primary)',
-                    marginBottom: 18,
-                    letterSpacing: '-0.5px',
+                    fontFamily: "'Fraunces', serif",
+                    fontSize: 20,
+                    fontWeight: 500,
+                    color: C.cream,
+                    marginBottom: 16,
+                    letterSpacing: '-0.3px',
                   }}
                 >
                   {g.title}
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {g.highlights.map(h => (
                     <div key={h} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <div
                         style={{
-                          width: 6,
-                          height: 6,
+                          width: 5,
+                          height: 5,
                           borderRadius: '50%',
-                          background: isSelected ? g.color : 'var(--text-muted)',
+                          background: isSelected ? g.accentColor : C.muted,
                           flexShrink: 0,
-                          transition: 'background 0.3s',
-                          boxShadow: isSelected ? `0 0 8px ${g.color}` : 'none',
+                          transition: 'background 0.25s',
                         }}
                       />
-                      <span style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                      <span style={{ fontSize: 13, color: C.soft, lineHeight: 1.4 }}>
                         {h}
                       </span>
                     </div>
                   ))}
                 </div>
 
-                {/* Selected indicator */}
                 {isSelected && (
                   <div
                     style={{
                       position: 'absolute',
-                      top: 20,
-                      right: 20,
-                      width: 28,
-                      height: 28,
+                      top: 18,
+                      right: 18,
+                      width: 24,
+                      height: 24,
                       borderRadius: '50%',
-                      background: g.color,
+                      background: g.accentColor,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: '#fff',
-                      boxShadow: `0 0 16px ${g.color}`,
+                      color: '#1a1306',
                     }}
                   >
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
                       <path d="M3 7L6 10L11 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </div>
@@ -267,25 +255,35 @@ export default function GroupSetupPage() {
           disabled={!selected || loading}
           style={{
             width: '100%',
-            padding: '16px',
-            borderRadius: 'var(--radius-md)',
+            padding: '14px',
+            borderRadius: 12,
             border: 'none',
-            background: selected
-              ? selected === 1
-                ? 'var(--accent-gradient)'
-                : 'linear-gradient(135deg, #059669, #10b981)'
-              : 'rgba(255, 255, 255, 0.05)',
-            backgroundSize: '200% 200%',
-            animation: selected && !loading ? 'gradientShift 4s ease infinite' : 'none',
-            color: selected ? '#fff' : 'var(--text-muted)',
+            background: !selected
+              ? C.panel
+              : selected === 1
+              ? C.gold
+              : '#5bbf8a',
+            color: !selected ? C.muted : '#1a1306',
             fontSize: 15,
             fontWeight: 700,
-            fontFamily: "'Outfit', 'Inter', sans-serif",
+            fontFamily: "'Inter', sans-serif",
             cursor: selected && !loading ? 'pointer' : 'not-allowed',
-            transition: 'all 0.3s var(--ease-smooth)',
+            transition: 'all 0.25s ease',
             boxShadow: selected
-              ? `0 12px 36px ${selected === 1 ? 'var(--glow-purple)' : 'var(--green-glow)'}`
+              ? selected === 1
+                ? '0 8px 28px rgba(227,183,106,0.28)'
+                : '0 8px 28px rgba(91,191,138,0.25)'
               : 'none',
+          }}
+          onMouseEnter={e => {
+            if (selected && !loading) {
+              e.currentTarget.style.background = selected === 1 ? C.goldSoft : '#7dd9a8';
+            }
+          }}
+          onMouseLeave={e => {
+            if (selected && !loading) {
+              e.currentTarget.style.background = selected === 1 ? C.gold : '#5bbf8a';
+            }
           }}
         >
           {loading ? 'Saving…' : selected ? `Confirm Group ${selected}` : 'Select a group to continue'}

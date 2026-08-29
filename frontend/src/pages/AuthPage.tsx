@@ -5,6 +5,21 @@ import { useAuth } from '../contexts/AuthContext';
 
 type Tab = 'signin' | 'signup';
 
+/* ── Presently theme tokens ── */
+const C = {
+  void:        '#080b13',
+  panel:       '#111a2c',
+  panelSoft:   '#0e1626',
+  hairline:    'rgba(255,255,255,0.09)',
+  hairlineSoft:'rgba(255,255,255,0.06)',
+  cream:       '#f3ecdd',
+  soft:        '#c7cfe0',
+  muted:       '#8a93ab',
+  gold:        '#e3b76a',
+  goldSoft:    '#f0cd8f',
+  goldDim:     'rgba(227,183,106,0.14)',
+};
+
 export default function AuthPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -22,12 +37,8 @@ export default function AuthPage() {
   useEffect(() => {
     const mode = searchParams.get('mode');
     const mail = searchParams.get('email');
-    if (mode === 'signup' || mode === 'signin') {
-      setTab(mode);
-    }
-    if (mail) {
-      setEmail(mail);
-    }
+    if (mode === 'signup' || mode === 'signin') setTab(mode);
+    if (mail) setEmail(mail);
   }, [searchParams]);
 
   const handle = async (e: React.FormEvent) => {
@@ -54,21 +65,17 @@ export default function AuthPage() {
 
   const inputStyle = (field: string) => ({
     width: '100%',
-    padding: '13px 16px',
-    borderRadius: 'var(--radius-sm)',
-    border: `1px solid ${focusedField === field ? 'rgba(124, 58, 237, 0.5)' : 'var(--border)'}`,
-    background: 'var(--bg-input)',
-    color: 'var(--text-primary)',
+    padding: '12px 15px',
+    borderRadius: 10,
+    border: `1px solid ${focusedField === field ? 'rgba(227,183,106,0.5)' : C.hairline}`,
+    background: C.void,
+    color: C.cream,
     fontSize: 14,
     fontFamily: "'Inter', sans-serif",
     outline: 'none',
     boxSizing: 'border-box' as const,
-    transition: 'all 0.3s var(--ease-smooth)',
-    backdropFilter: 'blur(8px)',
-    WebkitBackdropFilter: 'blur(8px)',
-    boxShadow: focusedField === field
-      ? '0 0 0 3px rgba(124, 58, 237, 0.12), 0 4px 16px rgba(0, 0, 0, 0.2)'
-      : '0 2px 8px rgba(0, 0, 0, 0.1)',
+    transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+    boxShadow: focusedField === field ? '0 0 0 3px rgba(227,183,106,0.1)' : 'none',
   });
 
   return (
@@ -79,96 +86,73 @@ export default function AuthPage() {
         alignItems: 'center',
         justifyContent: 'center',
         padding: 24,
+        background: C.void,
         position: 'relative',
         overflow: 'hidden',
       }}
     >
-      {/* Background glow orbs */}
-      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
-        <div
-          style={{
-            position: 'absolute',
-            width: 500,
-            height: 500,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(124, 58, 237, 0.15) 0%, transparent 70%)',
-            top: '-10%',
-            left: '10%',
-            filter: 'blur(60px)',
-            animation: 'orbFloat 15s ease-in-out infinite',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            width: 400,
-            height: 400,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(6, 182, 212, 0.1) 0%, transparent 70%)',
-            bottom: '5%',
-            right: '5%',
-            filter: 'blur(50px)',
-            animation: 'orbFloat 18s ease-in-out infinite reverse',
-          }}
-        />
-      </div>
+      <style>{`
+        @keyframes driftUp {
+          from { opacity:0; transform:translateY(18px); }
+          to   { opacity:1; transform:translateY(0); }
+        }
+        @keyframes driftDown {
+          from { opacity:0; transform:translateY(-14px); }
+          to   { opacity:1; transform:translateY(0); }
+        }
+      `}</style>
 
       {/* Auth card */}
       <div
         style={{
           width: '100%',
-          maxWidth: 440,
-          background: 'rgba(255, 255, 255, 0.04)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-xl)',
-          padding: '44px 40px',
+          maxWidth: 420,
+          background: C.panelSoft,
+          border: `1px solid ${C.hairline}`,
+          borderRadius: 20,
+          padding: '40px 36px',
           position: 'relative',
           zIndex: 1,
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          boxShadow: '0 32px 100px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06)',
-          animation: 'fadeInScale 0.6s var(--ease-spring) both',
+          animation: 'driftUp 0.7s cubic-bezier(0.16,1,0.3,1) both',
         }}
       >
-        {/* Inner glow accent */}
+        {/* Gold top hairline */}
         <div
           style={{
             position: 'absolute',
             top: -1,
-            left: '20%',
-            right: '20%',
+            left: '25%',
+            right: '25%',
             height: 1,
-            background: 'var(--accent-gradient)',
-            borderRadius: '0 0 50% 50%',
-            filter: 'blur(1px)',
-            opacity: 0.6,
+            background: `linear-gradient(90deg, transparent, ${C.gold}, transparent)`,
+            opacity: 0.7,
           }}
         />
 
-        {/* Back to Home link */}
+        {/* Back to Home */}
         <button
           onClick={() => navigate('/landing')}
           style={{
             background: 'none',
             border: 'none',
-            color: 'var(--text-muted)',
+            color: C.muted,
             fontSize: 13,
             fontWeight: 500,
             cursor: 'pointer',
             display: 'inline-flex',
             alignItems: 'center',
             gap: 6,
-            marginBottom: 20,
+            marginBottom: 24,
             padding: 0,
             fontFamily: "'Inter', sans-serif",
             transition: 'color 0.2s ease',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
-          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+          onMouseEnter={e => (e.currentTarget.style.color = C.soft)}
+          onMouseLeave={e => (e.currentTarget.style.color = C.muted)}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="19" y1="12" x2="5" y2="12"></line>
-            <polyline points="12 19 5 12 12 5"></polyline>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="19" y1="12" x2="5" y2="12"/>
+            <polyline points="12 19 5 12 12 5"/>
           </svg>
           Back to Home
         </button>
@@ -178,44 +162,30 @@ export default function AuthPage() {
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 14,
-            marginBottom: 36,
-            animation: 'fadeInUp 0.6s var(--ease-out-expo) 0.1s both',
+            gap: 12,
+            marginBottom: 32,
           }}
         >
-          <div
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: 14,
-              background: 'var(--accent-gradient)',
-              backgroundSize: '200% 200%',
-              animation: 'gradientShift 4s ease infinite',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 22,
-              fontWeight: 800,
-              color: '#fff',
-              boxShadow: '0 8px 28px var(--glow-purple)',
-              fontFamily: "'Outfit', sans-serif",
-            }}
-          >
-            A
-          </div>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M12 2.5C12 2.5 15.5 6 15.5 10.5C15.5 14.2 12.8 16.8 12 17.5C11.2 16.8 8.5 14.2 8.5 10.5C8.5 6 12 2.5 12 2.5Z"
+              fill={C.gold} opacity="0.9"
+            />
+            <circle cx="12" cy="20" r="1.6" fill={C.gold} opacity="0.5" />
+          </svg>
           <div>
             <div
               style={{
-                fontFamily: "'Outfit', 'Inter', sans-serif",
-                fontWeight: 800,
-                fontSize: 19,
-                color: 'var(--text-primary)',
-                letterSpacing: '-0.5px',
+                fontFamily: "'Fraunces', serif",
+                fontWeight: 600,
+                fontSize: 20,
+                color: C.cream,
+                letterSpacing: '-0.3px',
               }}
             >
-              Attendance Tracker
+              Presently
             </div>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+            <div style={{ fontSize: 12, color: C.muted, marginTop: 1, fontFamily: "'Inter', sans-serif" }}>
               Heritage Institute of Technology
             </div>
           </div>
@@ -226,12 +196,11 @@ export default function AuthPage() {
           style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
-            background: 'rgba(255, 255, 255, 0.03)',
-            borderRadius: 'var(--radius-sm)',
-            padding: 4,
-            marginBottom: 32,
-            border: '1px solid var(--border-subtle)',
-            animation: 'fadeInUp 0.6s var(--ease-out-expo) 0.15s both',
+            background: C.void,
+            borderRadius: 10,
+            padding: 3,
+            marginBottom: 28,
+            border: `1px solid ${C.hairlineSoft}`,
           }}
         >
           {(['signin', 'signup'] as Tab[]).map(t => (
@@ -240,21 +209,17 @@ export default function AuthPage() {
               id={`tab-${t}`}
               onClick={() => setTab(t)}
               style={{
-                padding: '10px 0',
+                padding: '9px 0',
                 borderRadius: 8,
                 border: 'none',
                 cursor: 'pointer',
                 fontWeight: 600,
                 fontSize: 13,
                 fontFamily: "'Inter', sans-serif",
-                transition: 'all 0.3s var(--ease-smooth)',
-                background: tab === t ? 'var(--accent-gradient)' : 'transparent',
-                backgroundSize: tab === t ? '200% 200%' : 'auto',
-                animation: tab === t ? 'gradientShift 4s ease infinite' : 'none',
-                color: tab === t ? '#fff' : 'var(--text-muted)',
-                boxShadow: tab === t
-                  ? '0 4px 16px var(--glow-purple), inset 0 1px 0 rgba(255,255,255,0.15)'
-                  : 'none',
+                transition: 'all 0.25s ease',
+                background: tab === t ? C.gold : 'transparent',
+                color: tab === t ? '#1a1306' : C.muted,
+                boxShadow: tab === t ? `0 4px 14px rgba(227,183,106,0.3)` : 'none',
               }}
             >
               {t === 'signin' ? 'Sign In' : 'Sign Up'}
@@ -262,18 +227,19 @@ export default function AuthPage() {
           ))}
         </div>
 
-        <form onSubmit={handle} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <form onSubmit={handle} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
           {tab === 'signup' && (
-            <div style={{ animation: 'fadeInUp 0.4s var(--ease-out-expo) both' }}>
+            <div style={{ animation: 'driftUp 0.4s var(--ease-out-expo) both' }}>
               <label
                 style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: 'var(--text-muted)',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: C.muted,
                   display: 'block',
-                  marginBottom: 8,
+                  marginBottom: 7,
                   textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
+                  letterSpacing: '0.8px',
+                  fontFamily: "'JetBrains Mono', monospace",
                 }}
               >
                 Full Name
@@ -292,16 +258,17 @@ export default function AuthPage() {
             </div>
           )}
 
-          <div style={{ animation: 'fadeInUp 0.4s var(--ease-out-expo) 0.05s both' }}>
+          <div>
             <label
               style={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: 'var(--text-muted)',
+                fontSize: 11,
+                fontWeight: 700,
+                color: C.muted,
                 display: 'block',
-                marginBottom: 8,
+                marginBottom: 7,
                 textTransform: 'uppercase',
-                letterSpacing: '0.5px',
+                letterSpacing: '0.8px',
+                fontFamily: "'JetBrains Mono', monospace",
               }}
             >
               Email ID
@@ -319,16 +286,17 @@ export default function AuthPage() {
             />
           </div>
 
-          <div style={{ animation: 'fadeInUp 0.4s var(--ease-out-expo) 0.1s both' }}>
+          <div>
             <label
               style={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: 'var(--text-muted)',
+                fontSize: 11,
+                fontWeight: 700,
+                color: C.muted,
                 display: 'block',
-                marginBottom: 8,
+                marginBottom: 7,
                 textTransform: 'uppercase',
-                letterSpacing: '0.5px',
+                letterSpacing: '0.8px',
+                fontFamily: "'JetBrains Mono', monospace",
               }}
             >
               Password
@@ -352,29 +320,23 @@ export default function AuthPage() {
             type="submit"
             disabled={loading}
             style={{
-              marginTop: 8,
-              padding: '14px',
-              borderRadius: 'var(--radius-sm)',
+              marginTop: 6,
+              padding: '13px',
+              borderRadius: 10,
               border: 'none',
-              background: loading ? 'var(--bg-elevated)' : 'var(--accent-gradient)',
-              backgroundSize: '200% 200%',
-              animation: loading ? 'none' : 'gradientShift 4s ease infinite',
-              color: '#fff',
+              background: loading ? C.panel : C.gold,
+              color: loading ? C.muted : '#1a1306',
               fontSize: 14,
               fontWeight: 700,
               fontFamily: "'Inter', sans-serif",
               cursor: loading ? 'not-allowed' : 'pointer',
-              transition: 'all 0.3s var(--ease-smooth)',
-              boxShadow: loading
-                ? 'none'
-                : '0 8px 28px var(--glow-purple), inset 0 1px 0 rgba(255,255,255,0.15)',
-              position: 'relative',
-              overflow: 'hidden',
+              transition: 'all 0.2s ease',
+              boxShadow: loading ? 'none' : '0 6px 22px rgba(227,183,106,0.28)',
             }}
+            onMouseEnter={e => { if (!loading) e.currentTarget.style.background = C.goldSoft; }}
+            onMouseLeave={e => { if (!loading) e.currentTarget.style.background = C.gold; }}
           >
-            <span style={{ position: 'relative', zIndex: 1 }}>
-              {loading ? 'Please wait…' : tab === 'signin' ? 'Sign In' : 'Create Account'}
-            </span>
+            {loading ? 'Please wait…' : tab === 'signin' ? 'Sign In' : 'Create Account'}
           </button>
         </form>
 
@@ -382,10 +344,11 @@ export default function AuthPage() {
           <p
             style={{
               fontSize: 12,
-              color: 'var(--text-muted)',
+              color: C.muted,
               textAlign: 'center',
-              marginTop: 20,
+              marginTop: 18,
               lineHeight: 1.6,
+              fontFamily: "'Inter', sans-serif",
             }}
           >
             After signing up, you'll choose your group (Gr. 1 or Gr. 2) to see your personalized timetable.

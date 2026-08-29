@@ -3,18 +3,47 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
+/* ── Presently theme tokens ── */
+const C = {
+  void:        '#080b13',
+  panel:       '#111a2c',
+  panelSoft:   '#0e1626',
+  hairline:    'rgba(255,255,255,0.09)',
+  hairlineSoft:'rgba(255,255,255,0.06)',
+  cream:       '#f3ecdd',
+  soft:        '#c7cfe0',
+  muted:       '#8a93ab',
+  gold:        '#e3b76a',
+  goldSoft:    '#f0cd8f',
+  goldDim:     'rgba(227,183,106,0.14)',
+};
+
 const links = [
   { to: '/', label: 'Dashboard', id: 'nav-dashboard', icon: (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8.5L8 3L14 8.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M3.5 7.5V13H6.5V10H9.5V13H12.5V7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+      <path d="M2 8.5L8 3L14 8.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M3.5 7.5V13H6.5V10H9.5V13H12.5V7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
   )},
   { to: '/today', label: 'Today', id: 'nav-today', icon: (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" strokeWidth="1.5"/><path d="M2 7H14" stroke="currentColor" strokeWidth="1.5"/><path d="M5.5 1.5V4.5M10.5 1.5V4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+      <rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+      <path d="M2 7H14" stroke="currentColor" strokeWidth="1.5"/>
+      <path d="M5.5 1.5V4.5M10.5 1.5V4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
   )},
   { to: '/history', label: 'History', id: 'nav-history', icon: (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5"/><path d="M8 5V8L10 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+      <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5"/>
+      <path d="M8 5V8L10 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
   )},
   { to: '/statistics', label: 'Statistics', id: 'nav-statistics', icon: (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="8" width="3" height="5" rx="0.5" stroke="currentColor" strokeWidth="1.5"/><rect x="6.5" y="5" width="3" height="8" rx="0.5" stroke="currentColor" strokeWidth="1.5"/><rect x="11" y="3" width="3" height="10" rx="0.5" stroke="currentColor" strokeWidth="1.5"/></svg>
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+      <rect x="2" y="8" width="3" height="5" rx="0.5" stroke="currentColor" strokeWidth="1.5"/>
+      <rect x="6.5" y="5" width="3" height="8" rx="0.5" stroke="currentColor" strokeWidth="1.5"/>
+      <rect x="11" y="3" width="3" height="10" rx="0.5" stroke="currentColor" strokeWidth="1.5"/>
+    </svg>
   )},
 ];
 
@@ -29,134 +58,124 @@ export default function Navbar() {
 
   return (
     <>
+      <style>{`
+        @keyframes driftDown {
+          from { opacity:0; transform:translateY(-10px); }
+          to   { opacity:1; transform:translateY(0); }
+        }
+        .pv-nav-link {
+          padding: 7px 14px;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 500;
+          text-decoration: none;
+          font-family: 'Inter', sans-serif;
+          transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          color: ${C.muted};
+          border: 1px solid transparent;
+        }
+        .pv-nav-link:hover { color: ${C.soft}; background: rgba(255,255,255,0.03); border-color: ${C.hairline}; }
+        .pv-nav-link.active { color: ${C.cream}; background: rgba(227,183,106,0.1); border-color: rgba(227,183,106,0.3); }
+        .pv-mobile-link {
+          padding: 12px 16px;
+          border-radius: 10px;
+          font-size: 14px;
+          font-weight: 500;
+          text-decoration: none;
+          font-family: 'Inter', sans-serif;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          color: ${C.muted};
+          transition: color 0.2s ease, background 0.2s ease;
+        }
+        .pv-mobile-link:hover { color: ${C.cream}; background: rgba(255,255,255,0.03); }
+        .pv-mobile-link.active { color: ${C.goldSoft}; background: rgba(227,183,106,0.1); }
+      `}</style>
+
       <nav
         style={{
           position: 'sticky',
           top: 0,
           zIndex: 100,
-          background: 'rgba(6, 6, 10, 0.7)',
-          backdropFilter: 'blur(20px) saturate(1.4)',
-          WebkitBackdropFilter: 'blur(20px) saturate(1.4)',
-          borderBottom: '1px solid var(--border)',
-          boxShadow: '0 4px 30px rgba(0, 0, 0, 0.15)',
+          background: 'rgba(8,11,19,0.94)',
+          borderBottom: `1px solid ${C.hairlineSoft}`,
+          animation: 'driftDown 0.5s ease both',
         }}
       >
         <div
           style={{
             maxWidth: 1200,
             margin: '0 auto',
-            padding: '0 24px',
+            padding: '0 28px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            height: 64,
+            height: 60,
           }}
         >
           {/* Logo + nav links */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
             {/* Logo */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div
-                style={{
-                  width: 34,
-                  height: 34,
-                  borderRadius: 'var(--radius-sm)',
-                  background: 'var(--accent-gradient)',
-                  backgroundSize: '200% 200%',
-                  animation: 'gradientShift 4s ease infinite',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 15,
-                  fontWeight: 800,
-                  color: '#fff',
-                  boxShadow: '0 4px 20px var(--glow-purple)',
-                  fontFamily: "'Outfit', sans-serif",
-                }}
-              >
-                A
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M12 2.5C12 2.5 15.5 6 15.5 10.5C15.5 14.2 12.8 16.8 12 17.5C11.2 16.8 8.5 14.2 8.5 10.5C8.5 6 12 2.5 12 2.5Z"
+                  fill={C.gold} opacity="0.9"
+                />
+                <circle cx="12" cy="20" r="1.6" fill={C.gold} opacity="0.5" />
+              </svg>
               <span
                 style={{
-                  fontFamily: "'Outfit', 'Inter', sans-serif",
-                  fontWeight: 700,
-                  fontSize: 16,
-                  color: 'var(--text-primary)',
-                  letterSpacing: '-0.5px',
+                  fontFamily: "'Fraunces', serif",
+                  fontWeight: 600,
+                  fontSize: 18,
+                  color: C.cream,
+                  letterSpacing: '-0.3px',
                 }}
               >
-                Attendance
+                Presently
               </span>
             </div>
 
             {/* Desktop nav links */}
-            <div
-              className="desktop-nav-links"
-              style={{
-                display: 'flex',
-                gap: 4,
-                padding: 4,
-                borderRadius: 'var(--radius-sm)',
-                background: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid var(--border-subtle)',
-              }}
-            >
+            <div className="nav-desktop-container" style={{ display: 'flex', gap: 3 }}>
               {links.map(({ to, label, id, icon }) => (
                 <NavLink
                   key={to}
                   to={to}
                   id={id}
                   end={to === '/'}
-                  style={({ isActive }) => ({
-                    padding: '7px 16px',
-                    borderRadius: 8,
-                    fontSize: 13,
-                    fontWeight: 500,
-                    textDecoration: 'none',
-                    transition: 'all 0.25s var(--ease-smooth)',
-                    color: isActive ? '#fff' : 'var(--text-secondary)',
-                    background: isActive
-                      ? 'var(--accent-gradient)'
-                      : 'transparent',
-                    backgroundSize: isActive ? '200% 200%' : 'auto',
-                    animation: isActive ? 'gradientShift 4s ease infinite' : 'none',
-                    boxShadow: isActive
-                      ? '0 4px 16px var(--glow-purple), inset 0 1px 0 rgba(255,255,255,0.15)'
-                      : 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    fontFamily: "'Inter', sans-serif",
-                  })}
+                  className={({ isActive }) => `pv-nav-link${isActive ? ' active' : ''}`}
                 >
                   {icon}
-                  <span className="nav-label">{label}</span>
+                  <span>{label}</span>
                 </NavLink>
               ))}
             </div>
           </div>
 
           {/* Right side */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {/* Group badge */}
             {profile && (
               <div
                 style={{
-                  padding: '4px 12px',
+                  padding: '3px 10px',
                   borderRadius: 'var(--radius-full)',
-                  background: profile.group_number === 1
-                    ? 'rgba(124, 58, 237, 0.12)'
-                    : 'rgba(16, 185, 129, 0.12)',
-                  border: `1px solid ${profile.group_number === 1
-                    ? 'rgba(124, 58, 237, 0.3)'
-                    : 'rgba(16, 185, 129, 0.3)'}`,
+                  background: 'rgba(227,183,106,0.1)',
+                  border: '1px solid rgba(227,183,106,0.28)',
                   fontSize: 11,
                   fontWeight: 700,
-                  color: profile.group_number === 1 ? '#a78bfa' : '#34d399',
-                  letterSpacing: '0.4px',
+                  color: C.gold,
+                  letterSpacing: '0.3px',
+                  fontFamily: "'JetBrains Mono', monospace",
                 }}
               >
-                Gr. {profile.group_number}
+                Gr.{profile.group_number}
               </div>
             )}
 
@@ -166,11 +185,12 @@ export default function Navbar() {
                 className="nav-user-email"
                 style={{
                   fontSize: 12,
-                  color: 'var(--text-muted)',
+                  color: C.muted,
                   maxWidth: 150,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
+                  fontFamily: "'Inter', sans-serif",
                 }}
               >
                 {user.email}
@@ -182,36 +202,34 @@ export default function Navbar() {
               id="btn-sign-out"
               onClick={handleSignOut}
               style={{
-                padding: '7px 14px',
+                padding: '6px 13px',
                 borderRadius: 8,
-                border: '1px solid var(--border)',
+                border: `1px solid ${C.hairline}`,
                 background: 'transparent',
-                color: 'var(--text-muted)',
+                color: C.muted,
                 fontSize: 12,
                 fontWeight: 600,
                 cursor: 'pointer',
                 fontFamily: "'Inter', sans-serif",
-                transition: 'all 0.25s var(--ease-smooth)',
+                transition: 'all 0.2s ease',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 6,
+                gap: 5,
               }}
               onMouseEnter={e => {
                 const t = e.currentTarget;
-                t.style.borderColor = 'rgba(244, 63, 94, 0.4)';
-                t.style.color = '#fb7185';
-                t.style.background = 'rgba(244, 63, 94, 0.08)';
-                t.style.boxShadow = '0 0 16px rgba(244, 63, 94, 0.15)';
+                t.style.borderColor = 'rgba(217,95,106,0.4)';
+                t.style.color = '#e88090';
+                t.style.background = 'rgba(217,95,106,0.08)';
               }}
               onMouseLeave={e => {
                 const t = e.currentTarget;
-                t.style.borderColor = 'var(--border)';
-                t.style.color = 'var(--text-muted)';
+                t.style.borderColor = C.hairline;
+                t.style.color = C.muted;
                 t.style.background = 'transparent';
-                t.style.boxShadow = 'none';
               }}
             >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
                 <path d="M5 2H3.5C2.67 2 2 2.67 2 3.5V10.5C2 11.33 2.67 12 3.5 12H5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
                 <path d="M9 4L12 7L9 10" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M12 7H5.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
@@ -224,16 +242,16 @@ export default function Navbar() {
               onClick={() => setMobileOpen(!mobileOpen)}
               style={{
                 display: 'none',
-                padding: 8,
+                padding: 7,
                 borderRadius: 8,
-                border: '1px solid var(--border)',
+                border: `1px solid ${C.hairline}`,
                 background: 'transparent',
-                color: 'var(--text-secondary)',
+                color: C.soft,
                 cursor: 'pointer',
               }}
               className="mobile-menu-btn"
             >
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <svg width="17" height="17" viewBox="0 0 18 18" fill="none">
                 <path d="M3 5H15M3 9H15M3 13H15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
             </button>
@@ -249,8 +267,7 @@ export default function Navbar() {
             style={{
               position: 'fixed',
               inset: 0,
-              background: 'rgba(0, 0, 0, 0.6)',
-              backdropFilter: 'blur(4px)',
+              background: 'rgba(0,0,0,0.65)',
               zIndex: 90,
               animation: 'fadeInUp 0.2s ease both',
             }}
@@ -261,19 +278,26 @@ export default function Navbar() {
               top: 0,
               right: 0,
               bottom: 0,
-              width: 280,
-              background: 'rgba(6, 6, 10, 0.95)',
-              backdropFilter: 'blur(24px)',
-              borderLeft: '1px solid var(--border)',
+              width: 264,
+              background: 'rgba(8,11,19,0.97)',
+              borderLeft: `1px solid ${C.hairline}`,
               zIndex: 95,
-              padding: '24px',
+              padding: '24px 20px',
               display: 'flex',
               flexDirection: 'column',
-              gap: 8,
+              gap: 4,
               animation: 'slideInRight 0.3s var(--ease-out-expo) both',
             }}
           >
-            <div style={{ marginBottom: 16, fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>
+            <div
+              style={{
+                marginBottom: 18,
+                fontFamily: "'Fraunces', serif",
+                fontWeight: 500,
+                fontSize: 18,
+                color: C.cream,
+              }}
+            >
               Menu
             </div>
             {links.map(({ to, label, id, icon }) => (
@@ -283,23 +307,31 @@ export default function Navbar() {
                 id={`mobile-${id}`}
                 end={to === '/'}
                 onClick={() => setMobileOpen(false)}
-                style={({ isActive }) => ({
-                  padding: '12px 16px',
-                  borderRadius: 'var(--radius-sm)',
-                  fontSize: 14,
-                  fontWeight: 500,
-                  textDecoration: 'none',
-                  color: isActive ? '#fff' : 'var(--text-secondary)',
-                  background: isActive ? 'var(--accent-gradient)' : 'transparent',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                })}
+                className={({ isActive }) => `pv-mobile-link${isActive ? ' active' : ''}`}
               >
                 {icon}
                 {label}
               </NavLink>
             ))}
+            <div style={{ marginTop: 'auto', paddingTop: 20 }}>
+              <button
+                onClick={handleSignOut}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  borderRadius: 10,
+                  border: `1px solid ${C.hairline}`,
+                  background: 'transparent',
+                  color: C.muted,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontFamily: "'Inter', sans-serif",
+                }}
+              >
+                Sign out
+              </button>
+            </div>
           </div>
         </>
       )}

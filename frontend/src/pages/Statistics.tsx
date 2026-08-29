@@ -7,11 +7,41 @@ import { getOverallStats, getSubjectStats, getTeacherStats } from '../api/client
 import type { OverallStats, SubjectStats, TeacherStats } from '../types/attendance';
 import ProgressBar from '../components/ProgressBar';
 
-function getColor(pct: number) {
-  if (pct >= 85) return '#10b981';
-  if (pct >= 75) return '#f59e0b';
-  return '#f43f5e';
+/* ── Presently theme tokens ── */
+const C = {
+  void:        '#080b13',
+  panel:       '#111a2c',
+  panelSoft:   '#0e1626',
+  hairline:    'rgba(255,255,255,0.09)',
+  hairlineSoft:'rgba(255,255,255,0.06)',
+  cream:       '#f3ecdd',
+  soft:        '#c7cfe0',
+  muted:       '#8a93ab',
+  gold:        '#e3b76a',
+  goldSoft:    '#f0cd8f',
+  goldDim:     'rgba(227,183,106,0.14)',
+  goldBg:      'rgba(227,183,106,0.1)',
+  goldBorder:  'rgba(227,183,106,0.22)',
+  green:       '#5bbf8a',
+  greenBg:     'rgba(91,191,138,0.1)',
+  greenBorder: 'rgba(91,191,138,0.22)',
+  red:         '#d95f6a',
+  redBg:       'rgba(217,95,106,0.1)',
+  redBorder:   'rgba(217,95,106,0.22)',
+};
+
+function getColor(pct: number): string {
+  if (pct >= 85) return C.green;
+  if (pct >= 75) return C.gold;
+  return C.red;
 }
+
+const cardStyle = {
+  background: C.panelSoft,
+  border: `1px solid ${C.hairline}`,
+  borderRadius: 18,
+  boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
+};
 
 export default function Statistics() {
   const [overall, setOverall] = useState<OverallStats | null>(null);
@@ -33,7 +63,7 @@ export default function Statistics() {
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>
-        <div style={{ color: 'var(--text-muted)', fontSize: 14 }}>Loading statistics...</div>
+        <div style={{ color: C.muted, fontSize: 13, fontFamily: "'JetBrains Mono', monospace" }}>Loading…</div>
       </div>
     );
   }
@@ -52,71 +82,65 @@ export default function Statistics() {
   }
 
   return (
-    <div style={{ maxWidth: 1040, margin: '0 auto', padding: '36px 24px 60px' }}>
+    <div style={{ maxWidth: 1040, margin: '0 auto', padding: '34px 24px 60px' }}>
       <h1
         style={{
-          fontFamily: "'Outfit', 'Inter', sans-serif",
-          fontSize: 32,
-          fontWeight: 800,
-          color: 'var(--text-primary)',
-          marginBottom: 32,
-          letterSpacing: '-1px',
-          animation: 'fadeInUp 0.5s var(--ease-out-expo) both',
+          fontFamily: "'Fraunces', serif",
+          fontSize: 'clamp(24px,3vw,32px)',
+          fontWeight: 500,
+          color: C.cream,
+          marginBottom: 28,
+          letterSpacing: '-0.5px',
+          animation: 'driftUp 0.7s cubic-bezier(0.16,1,0.3,1) both',
         }}
       >
-        Analytics & Statistics
+        Analytics &amp; Statistics
       </h1>
 
       {/* Overall Hero Card */}
       {overall && (
         <div
           style={{
-            background: 'var(--bg-card)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-xl)',
-            padding: '32px 36px',
-            marginBottom: 28,
+            ...cardStyle,
+            padding: '30px 32px',
+            marginBottom: 24,
             display: 'flex',
-            gap: 48,
+            gap: 44,
             alignItems: 'center',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
             flexWrap: 'wrap',
-            animation: 'fadeInUp 0.5s var(--ease-out-expo) 0.05s both',
+            animation: 'driftUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.05s both',
           }}
         >
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 8 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: 8, fontFamily: "'JetBrains Mono', monospace" }}>
               Overall Attendance
             </div>
             <div
               style={{
-                fontFamily: "'Outfit', sans-serif",
-                fontSize: 54,
-                fontWeight: 900,
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 52,
+                fontWeight: 500,
                 color: getColor(overall.percentage),
                 letterSpacing: '-2px',
                 lineHeight: 1,
-                textShadow: `0 0 30px ${getColor(overall.percentage)}40`,
               }}
             >
               {overall.conducted > 0 ? `${overall.percentage.toFixed(1)}%` : '—'}
             </div>
-            <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginTop: 10, fontWeight: 500 }}>
+            <div style={{ fontSize: 14, color: C.soft, marginTop: 10, fontFamily: "'Inter', sans-serif" }}>
               {overall.present} / {overall.conducted} classes attended
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 16, flex: 1, minWidth: 280 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))', gap: 14, flex: 1, minWidth: 260 }}>
             {[
-              { label: 'Present', val: overall.present, color: 'var(--green)', bg: 'var(--green-bg)' },
-              { label: 'Absent', val: overall.absent, color: 'var(--red)', bg: 'var(--red-bg)' },
-              { label: 'Cancelled', val: overall.cancelled, color: 'var(--text-muted)', bg: 'rgba(255,255,255,0.03)' },
-              { label: 'Conducted', val: overall.conducted, color: '#a78bfa', bg: 'rgba(124, 58, 237, 0.1)' },
-            ].map(({ label, val, color, bg }) => (
-              <div key={label} style={{ textAlign: 'center', padding: '16px 12px', borderRadius: 'var(--radius-md)', background: bg, border: '1px solid rgba(255,255,255,0.04)' }}>
-                <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 26, fontWeight: 800, color }}>{val}</div>
-                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4, fontWeight: 600 }}>{label}</div>
+              { label: 'Present',   val: overall.present,   color: C.green, bg: C.greenBg, border: C.greenBorder },
+              { label: 'Absent',    val: overall.absent,    color: C.red,   bg: C.redBg,   border: C.redBorder   },
+              { label: 'Cancelled', val: overall.cancelled, color: C.muted, bg: 'rgba(255,255,255,0.03)', border: C.hairlineSoft },
+              { label: 'Conducted', val: overall.conducted, color: C.gold,  bg: C.goldBg,  border: C.goldBorder  },
+            ].map(({ label, val, color, bg, border }) => (
+              <div key={label} style={{ textAlign: 'center', padding: '14px 10px', borderRadius: 12, background: bg, border: `1px solid ${border}` }}>
+                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 24, fontWeight: 500, color }}>{val}</div>
+                <div style={{ fontSize: 10, color: C.muted, marginTop: 4, fontWeight: 600, fontFamily: "'Inter', sans-serif" }}>{label}</div>
               </div>
             ))}
           </div>
@@ -127,31 +151,42 @@ export default function Statistics() {
       {chartData.length > 0 && (
         <div
           style={{
-            background: 'var(--bg-card)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-xl)',
-            padding: '28px 32px',
-            marginBottom: 28,
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-            animation: 'fadeInUp 0.5s var(--ease-out-expo) 0.1s both',
+            ...cardStyle,
+            padding: '26px 28px',
+            marginBottom: 24,
+            animation: 'driftUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.1s both',
           }}
         >
-          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 18, color: 'var(--text-primary)', marginBottom: 24, letterSpacing: '-0.5px' }}>
-            Subject Comparison Chart
+          <div
+            style={{
+              fontFamily: "'Fraunces', serif",
+              fontWeight: 500,
+              fontSize: 17,
+              color: C.cream,
+              marginBottom: 22,
+              letterSpacing: '-0.3px',
+            }}
+          >
+            Subject Comparison
           </div>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={chartData} margin={{ top: 0, right: 20, bottom: 0, left: -20 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-              <XAxis dataKey="name" tick={{ fill: 'var(--text-muted)', fontSize: 12, fontWeight: 600 }} axisLine={false} tickLine={false} />
-              <YAxis domain={[0, 100]} tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
+          <ResponsiveContainer width="100%" height={210}>
+            <BarChart data={chartData} margin={{ top: 0, right: 16, bottom: 0, left: -22 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={C.hairlineSoft} vertical={false} />
+              <XAxis dataKey="name" tick={{ fill: C.muted, fontSize: 11, fontWeight: 600, fontFamily: "'JetBrains Mono', monospace" }} axisLine={false} tickLine={false} />
+              <YAxis domain={[0, 100]} tick={{ fill: C.muted, fontSize: 11, fontFamily: "'Inter', sans-serif" }} axisLine={false} tickLine={false} />
               <Tooltip
-                contentStyle={{ background: 'rgba(10, 10, 15, 0.9)', border: '1px solid var(--border)', borderRadius: 12, fontSize: 12, backdropFilter: 'blur(16px)' }}
-                cursor={{ fill: 'rgba(255, 255, 255, 0.03)' }}
+                contentStyle={{
+                  background: C.panel,
+                  border: `1px solid ${C.hairline}`,
+                  borderRadius: 10,
+                  fontSize: 12,
+                  fontFamily: "'Inter', sans-serif",
+                  color: C.cream,
+                }}
+                cursor={{ fill: 'rgba(255,255,255,0.03)' }}
                 formatter={(val: unknown) => [`${Number(val).toFixed(1)}%`, 'Attendance'] as [string, string]}
               />
-              <Bar dataKey="percentage" radius={[8, 8, 0, 0]}>
+              <Bar dataKey="percentage" radius={[6, 6, 0, 0]}>
                 {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={getColor(entry.percentage)} />
                 ))}
@@ -164,18 +199,22 @@ export default function Statistics() {
       {/* Subject Details Progress list */}
       <div
         style={{
-          background: 'var(--bg-card)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-xl)',
-          padding: '28px 32px',
-          marginBottom: 28,
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-          animation: 'fadeInUp 0.5s var(--ease-out-expo) 0.15s both',
+          ...cardStyle,
+          padding: '26px 28px',
+          marginBottom: 24,
+          animation: 'driftUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.15s both',
         }}
       >
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 18, color: 'var(--text-primary)', marginBottom: 24, letterSpacing: '-0.5px' }}>
+        <div
+          style={{
+            fontFamily: "'Fraunces', serif",
+            fontWeight: 500,
+            fontSize: 17,
+            color: C.cream,
+            marginBottom: 22,
+            letterSpacing: '-0.3px',
+          }}
+        >
           Detailed Subject Progress
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -183,17 +222,17 @@ export default function Statistics() {
             <div key={s.subject_id}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
                 <div>
-                  <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>{s.subject_name}</span>
-                  <span style={{ fontSize: 12, color: 'var(--text-muted)', marginLeft: 8, fontWeight: 500 }}>{s.subject_code}</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: C.cream, fontFamily: "'Inter', sans-serif" }}>{s.subject_name}</span>
+                  <span style={{ fontSize: 11, color: C.muted, marginLeft: 8, fontWeight: 500, fontFamily: "'JetBrains Mono', monospace" }}>{s.subject_code}</span>
                 </div>
-                <div style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500 }}>
+                <div style={{ fontSize: 13, color: C.soft, fontFamily: "'Inter', sans-serif" }}>
                   {s.present}/{s.conducted} attended
-                  <span style={{ fontSize: 12, color: 'var(--text-muted)', marginLeft: 8 }}>
+                  <span style={{ fontSize: 11, color: C.muted, marginLeft: 8 }}>
                     (P:{s.present} A:{s.absent} C:{s.cancelled})
                   </span>
                 </div>
               </div>
-              <ProgressBar percentage={s.conducted > 0 ? s.percentage : 0} height={7} showLabel />
+              <ProgressBar percentage={s.conducted > 0 ? s.percentage : 0} height={6} showLabel />
             </div>
           ))}
         </div>
