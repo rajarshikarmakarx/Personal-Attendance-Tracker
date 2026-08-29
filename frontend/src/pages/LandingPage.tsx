@@ -622,7 +622,7 @@ export default function LandingPage() {
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontFamily: "'Fraunces', serif", color: COLORS.soft, fontWeight: 500 }}>Presently</span>
-          <span>· © {new Date().getFullYear()}</span>
+          <span>· © {new Date().getFullYear()} RAJARSHI KARMAKAR</span>
         </div>
         <div style={{ display: 'flex', gap: 22 }}>
           <a className="pv-link" onClick={goSignin}>Sign in</a>
