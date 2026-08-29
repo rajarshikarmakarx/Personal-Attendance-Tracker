@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
+import { createProfile } from '../api/client';
 
 const GROUPS = [
   {
@@ -41,37 +42,17 @@ export default function GroupSetupPage() {
   const confirm = async () => {
     if (!selected) return;
 
-    const { supabase } = await import('../lib/supabase');
-    const { data: { session: freshSession } } = await supabase.auth.getSession();
-    const token = freshSession?.access_token;
-
-    if (!token) {
-      toast.error('No session found. Please sign in again.');
-      return;
-    }
-
     setLoading(true);
     try {
-      const url = `${import.meta.env.VITE_API_URL}/profile`;
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ group_number: selected }),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || `Server error ${res.status}`);
-      }
+      await createProfile(selected);
       toast.success(`Group ${selected} selected! Loading your timetable…`);
       await refreshProfile();
     } catch (err: any) {
-      if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
-        toast.error('Cannot reach backend. Is the server running on port 8000?');
+      const msg = err.response?.data?.detail || err.message || 'Failed to set group';
+      if (err.message === 'Network Error' || (err.name === 'TypeError' && err.message === 'Failed to fetch')) {
+        toast.error('Cannot reach backend server. Please check VITE_API_URL or backend health.');
       } else {
-        toast.error(err.message || 'Something went wrong');
+        toast.error(msg);
       }
     } finally {
       setLoading(false);

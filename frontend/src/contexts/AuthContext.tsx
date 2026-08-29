@@ -1,13 +1,9 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import { getProfile, ProfileOut } from '../api/client';
 
-interface Profile {
-  user_id: string;
-  email: string;
-  group_number: number;
-  created_at: string;
-}
+type Profile = ProfileOut;
 
 interface AuthContextType {
   session: Session | null;
@@ -28,17 +24,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
-  const fetchProfile = async (token: string) => {
+  const fetchProfile = async () => {
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/profile`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (res.ok) {
-        setProfile(await res.json());
-      } else {
-        setProfile(null);
-      }
+      const data = await getProfile();
+      setProfile(data);
     } catch {
       setProfile(null);
     } finally {
@@ -52,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.access_token) {
-        fetchProfile(session.access_token);
+        fetchProfile();
       } else {
         setProfileLoading(false);
       }
@@ -64,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       if (session?.access_token) {
         setProfileLoading(true);
-        fetchProfile(session.access_token);
+        fetchProfile();
       } else {
         setProfile(null);
         setProfileLoading(false);
@@ -101,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshProfile = async () => {
     if (session?.access_token) {
       setProfileLoading(true);
-      await fetchProfile(session.access_token);
+      await fetchProfile();
     }
   };
 
