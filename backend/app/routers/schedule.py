@@ -1,6 +1,6 @@
 from datetime import date as date_type
 from typing import List, Dict
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.auth import get_current_user, CurrentUser
@@ -17,7 +17,7 @@ def get_schedule_range(
     db: Session = Depends(get_db),
     current_user: CurrentUser = Depends(get_current_user),
 ):
-    return get_schedule_for_range(db, start_date, end_date, current_user.user_id, current_user.group_number)
+    return get_schedule_for_range(db, start_date, end_date, current_user.user_id)
 
 
 @router.get("/{date}", response_model=List[ScheduleEntryOut])
@@ -26,5 +26,4 @@ def get_daily_schedule(
     db: Session = Depends(get_db),
     current_user: CurrentUser = Depends(get_current_user),
 ):
-    return get_schedule_for_date(db, date, current_user.user_id, current_user.group_number)
-
+    return get_schedule_for_date(db, date, current_user.user_id)

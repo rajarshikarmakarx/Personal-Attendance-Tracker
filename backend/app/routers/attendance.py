@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.auth import get_current_user, CurrentUser
@@ -14,10 +14,10 @@ def mark_attendance(
     db: Session = Depends(get_db),
     current_user: CurrentUser = Depends(get_current_user),
 ):
-    return upsert_attendance(db, payload, current_user.user_id, current_user.group_number)
+    return upsert_attendance(db, payload, current_user.user_id)
 
 
-@router.delete("/{attendance_id}", status_code=204)
+@router.delete("/{attendance_id}", status_code=status.HTTP_204_NO_CONTENT)
 def remove_attendance(
     attendance_id: int,
     db: Session = Depends(get_db),

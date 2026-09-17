@@ -1,7 +1,7 @@
 from datetime import date, datetime, time
-from typing import Optional
+from typing import Optional, List
 from uuid import UUID
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from app.models import AttendanceStatusEnum, WeekdayEnum
 
 
@@ -9,12 +9,23 @@ from app.models import AttendanceStatusEnum, WeekdayEnum
 
 class SubjectBase(BaseModel):
     name: str
-    code: str
-    short_name: str
+    code: Optional[str] = None
+    short_name: Optional[str] = None
+    color: Optional[str] = None
 
 
-class SubjectOut(SubjectBase):
+class SubjectCreate(SubjectBase):
+    pass
+
+
+class SubjectOut(BaseModel):
     id: int
+    user_id: str
+    name: str
+    code: Optional[str] = None
+    short_name: str
+    color: Optional[str] = None
+    created_at: datetime
 
     class Config:
         from_attributes = True
@@ -26,8 +37,13 @@ class TeacherBase(BaseModel):
     name: str
 
 
-class TeacherOut(TeacherBase):
+class TeacherCreate(TeacherBase):
+    pass
+
+
+class TeacherOut(BaseModel):
     id: int
+    name: str
 
     class Config:
         from_attributes = True
@@ -40,15 +56,33 @@ class TimetableEntryOut(BaseModel):
     weekday: WeekdayEnum
     start_time: time
     end_time: time
-    room: Optional[str]
-    period_number: Optional[int]
-    class_type: str
-    group_number: int
+    room: Optional[str] = None
+    period_number: Optional[int] = None
+    class_type: str = "L"
     subject: SubjectOut
-    teacher: TeacherOut
+    teacher: Optional[TeacherOut] = None
+    teacher_name: Optional[str] = None
 
     class Config:
         from_attributes = True
+
+
+class TimetableSlotInput(BaseModel):
+    weekday: WeekdayEnum
+    start_time: time
+    end_time: time
+    subject_name: str
+    subject_code: Optional[str] = None
+    short_name: Optional[str] = None
+    teacher_name: Optional[str] = None
+    room: Optional[str] = None
+    class_type: str = "L"
+    period_number: Optional[int] = None
+
+
+class TimetableBatchSave(BaseModel):
+    slots: List[TimetableSlotInput]
+    lock_schedule: bool = True
 
 
 # ── Schedule (daily view) ─────────────────────────────────────────────────────
@@ -56,15 +90,16 @@ class TimetableEntryOut(BaseModel):
 class ScheduleEntryOut(BaseModel):
     timetable_entry_id: int
     subject: SubjectOut
-    teacher: TeacherOut
+    teacher: Optional[TeacherOut] = None
+    teacher_name: Optional[str] = None
     start_time: time
     end_time: time
-    room: Optional[str]
+    room: Optional[str] = None
     class_type: str
-    period_number: Optional[int]
+    period_number: Optional[int] = None
     status: str  # PRESENT | ABSENT | CANCELLED | UNMARKED
-    attendance_id: Optional[int]
-    notes: Optional[str]
+    attendance_id: Optional[int] = None
+    notes: Optional[str] = None
 
 
 # ── Attendance ────────────────────────────────────────────────────────────────
@@ -81,7 +116,7 @@ class AttendanceOut(BaseModel):
     timetable_entry_id: int
     date: date
     status: AttendanceStatusEnum
-    notes: Optional[str]
+    notes: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -91,18 +126,18 @@ class AttendanceOut(BaseModel):
 
 # ── Profile ───────────────────────────────────────────────────────────────────
 
-class ProfileCreate(BaseModel):
-    group_number: int  # 1 or 2
-
-
 class ProfileOut(BaseModel):
     user_id: UUID
     email: str
-    group_number: int
+    schedule_locked: bool
     created_at: datetime
 
     class Config:
         from_attributes = True
+
+
+class ProfileUpdate(BaseModel):
+    schedule_locked: Optional[bool] = None
 
 
 # ── Statistics ────────────────────────────────────────────────────────────────
@@ -118,7 +153,7 @@ class OverallStats(BaseModel):
 class SubjectStats(BaseModel):
     subject_id: int
     subject_name: str
-    subject_code: str
+    subject_code: Optional[str] = None
     subject_short_name: str
     present: int
     absent: int
@@ -128,11 +163,11 @@ class SubjectStats(BaseModel):
 
 
 class TeacherStats(BaseModel):
-    teacher_id: int
+    teacher_id: Optional[int] = None
     teacher_name: str
     subject_id: int
     subject_name: str
-    subject_code: str
+    subject_code: Optional[str] = None
     present: int
     absent: int
     cancelled: int

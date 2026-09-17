@@ -1,5 +1,5 @@
 from datetime import datetime
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from app.models import AttendanceRecord, TimetableEntry
 from app.schemas import AttendanceUpsert
@@ -9,21 +9,20 @@ def upsert_attendance(
     db: Session,
     payload: AttendanceUpsert,
     user_id: str,
-    group_number: int,
 ) -> AttendanceRecord:
-    # Verify timetable entry exists AND belongs to user's group
+    # Verify timetable entry exists AND belongs to the user
     entry = (
         db.query(TimetableEntry)
         .filter(
             TimetableEntry.id == payload.timetable_entry_id,
-            TimetableEntry.group_number == group_number,
+            TimetableEntry.user_id == user_id,
         )
         .first()
     )
     if not entry:
         raise HTTPException(
             status_code=404,
-            detail="Timetable entry not found or does not belong to your group",
+            detail="Timetable entry not found or does not belong to your account",
         )
 
     record = (
@@ -57,7 +56,11 @@ def upsert_attendance(
     return record
 
 
-def delete_attendance(db: Session, attendance_id: int, user_id: str) -> None:
+def delete_attendance(
+    db: Session,
+    attendance_id: int,
+    user_id: str,
+) -> None:
     record = (
         db.query(AttendanceRecord)
         .filter(
@@ -67,6 +70,9 @@ def delete_attendance(db: Session, attendance_id: int, user_id: str) -> None:
         .first()
     )
     if not record:
-        raise HTTPException(status_code=404, detail="Attendance record not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Attendance record not found",
+        )
     db.delete(record)
     db.commit()

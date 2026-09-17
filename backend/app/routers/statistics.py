@@ -18,7 +18,7 @@ def overall_statistics(
     db: Session = Depends(get_db),
     current_user: CurrentUser = Depends(get_current_user),
 ):
-    return get_overall_stats(db, current_user.user_id, current_user.group_number)
+    return get_overall_stats(db, current_user.user_id)
 
 
 @router.get("/subjects", response_model=List[SubjectStats])
@@ -26,7 +26,7 @@ def subject_statistics(
     db: Session = Depends(get_db),
     current_user: CurrentUser = Depends(get_current_user),
 ):
-    return get_subject_stats(db, current_user.user_id, current_user.group_number)
+    return get_subject_stats(db, current_user.user_id)
 
 
 @router.get("/teachers", response_model=List[TeacherStats])
@@ -34,4 +34,4 @@ def teacher_statistics(
     db: Session = Depends(get_db),
     current_user: CurrentUser = Depends(get_current_user),
 ):
-    return get_teacher_stats(db, current_user.user_id, current_user.group_number)
+    return get_teacher_stats(db, current_user.user_id)

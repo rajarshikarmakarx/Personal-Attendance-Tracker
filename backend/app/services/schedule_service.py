@@ -1,5 +1,5 @@
-from datetime import date as date_type
-from typing import List
+from datetime import date as date_type, timedelta
+from typing import List, Dict
 from sqlalchemy.orm import Session, joinedload
 from app.models import TimetableEntry, AttendanceRecord, WeekdayEnum
 from app.schemas import ScheduleEntryOut, SubjectOut, TeacherOut
@@ -15,18 +15,11 @@ _WEEKDAY_MAP = {
 }
 
 
-SESSION_START_DATE = date_type(2026, 8, 10)
-
-
 def get_schedule_for_date(
     db: Session,
     target_date: date_type,
     user_id: str,
-    group_number: int,
 ) -> List[ScheduleEntryOut]:
-    if target_date < SESSION_START_DATE:
-        return []
-
     weekday = _WEEKDAY_MAP[target_date.weekday()]
 
     entries = (
@@ -34,7 +27,7 @@ def get_schedule_for_date(
         .options(joinedload(TimetableEntry.subject), joinedload(TimetableEntry.teacher))
         .filter(
             TimetableEntry.weekday == weekday,
-            TimetableEntry.group_number == group_number,
+            TimetableEntry.user_id == user_id,
         )
         .order_by(TimetableEntry.start_time)
         .all()
@@ -62,7 +55,8 @@ def get_schedule_for_date(
             ScheduleEntryOut(
                 timetable_entry_id=entry.id,
                 subject=SubjectOut.model_validate(entry.subject),
-                teacher=TeacherOut.model_validate(entry.teacher),
+                teacher=TeacherOut.model_validate(entry.teacher) if entry.teacher else None,
+                teacher_name=entry.teacher_name or (entry.teacher.name if entry.teacher else None),
                 start_time=entry.start_time,
                 end_time=entry.end_time,
                 room=entry.room,
@@ -82,22 +76,12 @@ def get_schedule_for_range(
     start_date: date_type,
     end_date: date_type,
     user_id: str,
-    group_number: int,
-) -> dict[str, List[ScheduleEntryOut]]:
-    if end_date < SESSION_START_DATE:
-        return {}
-
-    # Clamp start_date to SESSION_START_DATE
-    if start_date < SESSION_START_DATE:
-        start_date = SESSION_START_DATE
-
-    from datetime import timedelta
-
-    # 1. Fetch all timetable entries for this group
+) -> Dict[str, List[ScheduleEntryOut]]:
+    # 1. Fetch all timetable entries for this user
     timetable_entries = (
         db.query(TimetableEntry)
         .options(joinedload(TimetableEntry.subject), joinedload(TimetableEntry.teacher))
-        .filter(TimetableEntry.group_number == group_number)
+        .filter(TimetableEntry.user_id == user_id)
         .all()
     )
 
@@ -136,7 +120,8 @@ def get_schedule_for_range(
                     ScheduleEntryOut(
                         timetable_entry_id=entry.id,
                         subject=SubjectOut.model_validate(entry.subject),
-                        teacher=TeacherOut.model_validate(entry.teacher),
+                        teacher=TeacherOut.model_validate(entry.teacher) if entry.teacher else None,
+                        teacher_name=entry.teacher_name or (entry.teacher.name if entry.teacher else None),
                         start_time=entry.start_time,
                         end_time=entry.end_time,
                         room=entry.room,
@@ -154,4 +139,3 @@ def get_schedule_for_range(
         curr_date += timedelta(days=1)
 
     return result
-

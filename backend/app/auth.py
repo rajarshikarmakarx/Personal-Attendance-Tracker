@@ -4,6 +4,7 @@ New Supabase projects sign JWTs with ES256 (asymmetric).
 Keys are fetched from /auth/v1/.well-known/jwks.json and cached per process.
 """
 import httpx
+from datetime import datetime
 from dataclasses import dataclass
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -73,8 +74,8 @@ def _decode_supabase_token(token: str) -> dict:
 @dataclass
 class CurrentUser:
     user_id: str
-    group_number: int
     email: str
+    schedule_locked: bool = False
 
 
 # ── Dependencies ──────────────────────────────────────────────────────────────
@@ -93,24 +94,30 @@ def get_current_user(
     try:
         payload = _decode_supabase_token(token)
         user_id: str = payload.get("sub")
+        email: str = payload.get("email", "")
         if not user_id:
             raise credentials_exception
     except JWTError as e:
         print(f"[AUTH DEBUG] JWTError in get_current_user: {e}")
         raise credentials_exception
 
-    # Fetch profile (contains group_number)
+    # Fetch or auto-create profile
     profile = db.query(Profile).filter(Profile.user_id == user_id).first()
     if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Profile not set up. Please complete onboarding.",
+        profile = Profile(
+            user_id=user_id,
+            email=email,
+            schedule_locked=False,
+            created_at=datetime.utcnow(),
         )
+        db.add(profile)
+        db.commit()
+        db.refresh(profile)
 
     return CurrentUser(
         user_id=user_id,
-        group_number=profile.group_number,
-        email=profile.email,
+        email=profile.email or email,
+        schedule_locked=profile.schedule_locked,
     )
 
 
@@ -118,8 +125,7 @@ def get_current_user_no_profile(
     credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> tuple:
     """
-    Verifies the JWT but does NOT require a profile to exist.
-    Used only for the profile creation endpoint (POST /api/profile).
+    Verifies the JWT without querying the database.
     Returns (user_id, email).
     """
     token = credentials.credentials

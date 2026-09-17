@@ -1,11 +1,8 @@
-from datetime import date
 from typing import List
 from sqlalchemy import func, and_
 from sqlalchemy.orm import Session
 from app.models import AttendanceRecord, TimetableEntry, Subject, Teacher, AttendanceStatusEnum
 from app.schemas import OverallStats, SubjectStats, TeacherStats
-
-SESSION_START_DATE = date(2026, 8, 10)
 
 
 def _calc_percentage(attended: int, conducted: int) -> float:
@@ -14,14 +11,13 @@ def _calc_percentage(attended: int, conducted: int) -> float:
     return round(attended / conducted * 100, 1)
 
 
-def get_overall_stats(db: Session, user_id: str, group_number: int) -> OverallStats:
+def get_overall_stats(db: Session, user_id: str) -> OverallStats:
     counts = (
         db.query(AttendanceRecord.status, func.count(AttendanceRecord.id))
         .join(TimetableEntry, AttendanceRecord.timetable_entry_id == TimetableEntry.id)
         .filter(
             AttendanceRecord.user_id == user_id,
-            TimetableEntry.group_number == group_number,
-            AttendanceRecord.date >= SESSION_START_DATE,
+            TimetableEntry.user_id == user_id,
         )
         .group_by(AttendanceRecord.status)
         .all()
@@ -42,101 +38,94 @@ def get_overall_stats(db: Session, user_id: str, group_number: int) -> OverallSt
     )
 
 
-def get_subject_stats(db: Session, user_id: str, group_number: int) -> List[SubjectStats]:
+def get_subject_stats(db: Session, user_id: str) -> List[SubjectStats]:
+    # Query all subjects for the user
+    subjects = db.query(Subject).filter(Subject.user_id == user_id).order_by(Subject.name).all()
+    if not subjects:
+        return []
+
+    # Get attendance counts per subject
     rows = (
         db.query(
             Subject.id,
-            Subject.name,
-            Subject.code,
-            Subject.short_name,
             AttendanceRecord.status,
             func.count(AttendanceRecord.id)
         )
         .join(TimetableEntry, TimetableEntry.subject_id == Subject.id)
-        .outerjoin(
-            AttendanceRecord,
-            and_(
-                TimetableEntry.id == AttendanceRecord.timetable_entry_id,
-                AttendanceRecord.user_id == user_id,
-                AttendanceRecord.date >= SESSION_START_DATE,
-            )
-        )
-        .filter(TimetableEntry.group_number == group_number)
+        .join(AttendanceRecord, and_(
+            TimetableEntry.id == AttendanceRecord.timetable_entry_id,
+            AttendanceRecord.user_id == user_id,
+        ))
+        .filter(Subject.user_id == user_id)
         .group_by(Subject.id, AttendanceRecord.status)
         .all()
     )
 
-    subject_data = {}
-    for subj_id, name, code, short_name, status, count in rows:
-        if subj_id not in subject_data:
-            subject_data[subj_id] = {
-                "id": subj_id,
-                "name": name,
-                "code": code,
-                "short_name": short_name,
-                "present": 0,
-                "absent": 0,
-                "cancelled": 0,
-            }
-        if status == AttendanceStatusEnum.PRESENT:
-            subject_data[subj_id]["present"] = count
-        elif status == AttendanceStatusEnum.ABSENT:
-            subject_data[subj_id]["absent"] = count
-        elif status == AttendanceStatusEnum.CANCELLED:
-            subject_data[subj_id]["cancelled"] = count
+    counts_by_subject = {}
+    for subj_id, status, count in rows:
+        counts_by_subject.setdefault(subj_id, {})[status] = count
 
     result = []
-    for s_id, data in subject_data.items():
-        present = data["present"]
-        absent = data["absent"]
+    for s in subjects:
+        c_map = counts_by_subject.get(s.id, {})
+        present = c_map.get(AttendanceStatusEnum.PRESENT, 0)
+        absent = c_map.get(AttendanceStatusEnum.ABSENT, 0)
+        cancelled = c_map.get(AttendanceStatusEnum.CANCELLED, 0)
         conducted = present + absent
         result.append(SubjectStats(
-            subject_id=data["id"],
-            subject_name=data["name"],
-            subject_code=data["code"],
-            subject_short_name=data["short_name"],
+            subject_id=s.id,
+            subject_name=s.name,
+            subject_code=s.code,
+            subject_short_name=s.short_name,
             present=present,
             absent=absent,
-            cancelled=data["cancelled"],
+            cancelled=cancelled,
             conducted=conducted,
             percentage=_calc_percentage(present, conducted),
         ))
+
     return result
 
 
-def get_teacher_stats(db: Session, user_id: str, group_number: int) -> List[TeacherStats]:
+def get_teacher_stats(db: Session, user_id: str) -> List[TeacherStats]:
     rows = (
         db.query(
-            Teacher.id,
+            TimetableEntry.teacher_id,
+            TimetableEntry.teacher_name,
+            Teacher.name.label("teacher_table_name"),
+            Subject.id.label("subject_id"),
+            Subject.name.label("subject_name"),
+            Subject.code.label("subject_code"),
+            AttendanceRecord.status,
+            func.count(AttendanceRecord.id)
+        )
+        .join(Subject, TimetableEntry.subject_id == Subject.id)
+        .outerjoin(Teacher, TimetableEntry.teacher_id == Teacher.id)
+        .join(AttendanceRecord, and_(
+            TimetableEntry.id == AttendanceRecord.timetable_entry_id,
+            AttendanceRecord.user_id == user_id,
+        ))
+        .filter(TimetableEntry.user_id == user_id)
+        .group_by(
+            TimetableEntry.teacher_id,
+            TimetableEntry.teacher_name,
             Teacher.name,
             Subject.id,
             Subject.name,
             Subject.code,
-            AttendanceRecord.status,
-            func.count(AttendanceRecord.id)
+            AttendanceRecord.status
         )
-        .join(TimetableEntry, TimetableEntry.teacher_id == Teacher.id)
-        .join(Subject, TimetableEntry.subject_id == Subject.id)
-        .outerjoin(
-            AttendanceRecord,
-            and_(
-                TimetableEntry.id == AttendanceRecord.timetable_entry_id,
-                AttendanceRecord.user_id == user_id,
-                AttendanceRecord.date >= SESSION_START_DATE,
-            )
-        )
-        .filter(TimetableEntry.group_number == group_number)
-        .group_by(Teacher.id, Subject.id, AttendanceRecord.status)
         .all()
     )
 
     teacher_data = {}
-    for teacher_id, teacher_name, subj_id, subj_name, subj_code, status, count in rows:
-        key = (teacher_id, subj_id)
+    for t_id, t_name, t_table_name, subj_id, subj_name, subj_code, status, count in rows:
+        display_name = t_name or t_table_name or "Instructor"
+        key = (display_name, subj_id)
         if key not in teacher_data:
             teacher_data[key] = {
-                "teacher_id": teacher_id,
-                "teacher_name": teacher_name,
+                "teacher_id": t_id,
+                "teacher_name": display_name,
                 "subject_id": subj_id,
                 "subject_name": subj_name,
                 "subject_code": subj_code,
@@ -168,4 +157,5 @@ def get_teacher_stats(db: Session, user_id: str, group_number: int) -> List[Teac
             conducted=conducted,
             percentage=_calc_percentage(present, conducted),
         ))
+
     return result
