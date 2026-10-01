@@ -8,3 +8,5 @@ backend/app/__pycache__/
 *.pyc
 .env
 .env.*
+*.pdf
+scrape_schedules.py
