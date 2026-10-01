@@ -106,7 +106,7 @@ export default function SubjectDetail() {
   const totalPct       = totalConducted > 0 ? (totalPresent / totalConducted) * 100 : 0;
 
   const filteredHistory = selectedTeacher
-    ? history.filter(h => h.entry.teacher.id === selectedTeacher)
+    ? history.filter(h => (h.entry.teacher?.id ?? null) === selectedTeacher)
     : history;
 
   return (
@@ -275,14 +275,14 @@ export default function SubjectDetail() {
               </button>
               {teacherStats.map(t => (
                 <button
-                  key={t.teacher_id}
-                  onClick={() => setSelectedTeacher(t.teacher_id)}
+                  key={t.teacher_id ?? t.teacher_name}
+                  onClick={() => setSelectedTeacher(t.teacher_id ?? null)}
                   style={{
                     padding: '4px 10px',
                     borderRadius: 999,
-                    border: `1px solid ${selectedTeacher === t.teacher_id ? C.gold : C.hairline}`,
-                    background: selectedTeacher === t.teacher_id ? C.goldDim : 'transparent',
-                    color: selectedTeacher === t.teacher_id ? C.gold : C.muted,
+                    border: `1px solid ${selectedTeacher === (t.teacher_id ?? null) ? C.gold : C.hairline}`,
+                    background: selectedTeacher === (t.teacher_id ?? null) ? C.goldDim : 'transparent',
+                    color: selectedTeacher === (t.teacher_id ?? null) ? C.gold : C.muted,
                     cursor: 'pointer',
                     fontSize: 11,
                     fontWeight: 700,
@@ -336,7 +336,7 @@ export default function SubjectDetail() {
                     {format(date, 'EEE, d MMM yyyy')}
                   </div>
                   <div style={{ fontSize: 12, color: C.muted, fontFamily: "'Inter', sans-serif" }}>
-                    {entry.teacher.name}
+                    {entry.teacher_name || entry.teacher?.name || '—'}
                   </div>
                   <div>
                     <StatusBadge status={entry.status} size="sm" />

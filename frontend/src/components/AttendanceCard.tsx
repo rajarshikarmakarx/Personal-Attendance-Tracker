@@ -231,10 +231,11 @@ export default function AttendanceCard({ entry, date, onUpdate, compact = false,
           </div>
           {/* Teacher + room */}
           <div style={{ fontSize: 12, color: C.muted, fontFamily: "'Inter', sans-serif" }}>
-            {entry.teacher.name}
+            {entry.teacher_name || entry.teacher?.name || ''}
             {entry.room && (
-              <span style={{ color: C.muted, marginLeft: 8 }}>
-                <span style={{ opacity: 0.5 }}>·</span> {entry.room}
+              <span style={{ color: C.muted, marginLeft: (entry.teacher_name || entry.teacher?.name) ? 8 : 0 }}>
+                {(entry.teacher_name || entry.teacher?.name) && <span style={{ opacity: 0.5 }}>· </span>}
+                {entry.room}
               </span>
             )}
           </div>

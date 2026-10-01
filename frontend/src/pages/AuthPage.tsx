@@ -51,7 +51,7 @@ export default function AuthPage() {
       } else {
         const res = await signUp(email, password, name);
         if (res?.session) {
-          toast.success('Account created! Loading group setup…');
+          toast.success('Account created! Welcome to your dashboard.');
         } else {
           toast.success('Confirmation email sent! Please check your email and click the confirmation link to continue.', { duration: 7000 });
         }
@@ -351,7 +351,7 @@ export default function AuthPage() {
               fontFamily: "'Inter', sans-serif",
             }}
           >
-            After signing up, you'll choose your group (Gr. 1 or Gr. 2) to see your personalized timetable.
+            After signing up, you can build and customize your weekly class schedule in seconds.
           </p>
         )}
       </div>

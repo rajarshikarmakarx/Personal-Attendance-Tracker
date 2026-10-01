@@ -217,25 +217,31 @@ export default function Statistics() {
         >
           Detailed Subject Progress
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {subjects.map(s => (
-            <div key={s.subject_id}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
-                <div>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: C.cream, fontFamily: "'Inter', sans-serif" }}>{s.subject_name}</span>
-                  <span style={{ fontSize: 11, color: C.muted, marginLeft: 8, fontWeight: 500, fontFamily: "'JetBrains Mono', monospace" }}>{s.subject_code}</span>
+        {subjects.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '30px 0', color: C.muted, fontSize: 13, fontFamily: "'Inter', sans-serif" }}>
+            No subjects configured yet. Lock in your weekly schedule to view subject analytics.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {subjects.map(s => (
+              <div key={s.subject_id}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+                  <div>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: C.cream, fontFamily: "'Inter', sans-serif" }}>{s.subject_name}</span>
+                    <span style={{ fontSize: 11, color: C.muted, marginLeft: 8, fontWeight: 500, fontFamily: "'JetBrains Mono', monospace" }}>{s.subject_code}</span>
+                  </div>
+                  <div style={{ fontSize: 13, color: C.soft, fontFamily: "'Inter', sans-serif" }}>
+                    {s.present}/{s.conducted} attended
+                    <span style={{ fontSize: 11, color: C.muted, marginLeft: 8 }}>
+                      (P:{s.present} A:{s.absent} C:{s.cancelled})
+                    </span>
+                  </div>
                 </div>
-                <div style={{ fontSize: 13, color: C.soft, fontFamily: "'Inter', sans-serif" }}>
-                  {s.present}/{s.conducted} attended
-                  <span style={{ fontSize: 11, color: C.muted, marginLeft: 8 }}>
-                    (P:{s.present} A:{s.absent} C:{s.cancelled})
-                  </span>
-                </div>
+                <ProgressBar percentage={s.conducted > 0 ? s.percentage : 0} height={6} showLabel />
               </div>
-              <ProgressBar percentage={s.conducted > 0 ? s.percentage : 0} height={6} showLabel />
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

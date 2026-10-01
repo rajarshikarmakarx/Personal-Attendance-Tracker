@@ -1,9 +1,8 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import { getProfile, ProfileOut } from '../api/client';
-
-type Profile = ProfileOut;
+import { getProfile, lockSchedule as apiLockSchedule, unlockSchedule as apiUnlockSchedule } from '../api/client';
+import type { Profile } from '../types/attendance';
 
 interface AuthContextType {
   session: Session | null;
@@ -14,6 +13,8 @@ interface AuthContextType {
   signUp: (email: string, password: string, name?: string) => Promise<{ user: User | null; session: Session | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  lockSchedule: () => Promise<void>;
+  unlockSchedule: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -54,11 +55,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (session?.access_token) {
         if (event === 'TOKEN_REFRESHED') {
-          // Silent token refresh (e.g. returning to tab) — update session data but
-          // never show loading screen; re-fetch profile quietly in background.
           fetchProfile();
         } else {
-          // Actual sign-in or user change — show loading indicator while fetching profile.
           setProfileLoading(true);
           fetchProfile();
         }
@@ -78,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, name?: string) => {
-    const redirectTo = `${window.location.origin}/setup`;
+    const redirectTo = `${window.location.origin}/`;
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -101,13 +99,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshProfile = async () => {
     if (session?.access_token) {
-      setProfileLoading(true);
+      await fetchProfile();
+    }
+  };
+
+  const lockSchedule = async () => {
+    try {
+      const updated = await apiLockSchedule();
+      setProfile(updated);
+    } catch {
+      await fetchProfile();
+    }
+  };
+
+  const unlockSchedule = async () => {
+    try {
+      const updated = await apiUnlockSchedule();
+      setProfile(updated);
+    } catch {
       await fetchProfile();
     }
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, profile, profileLoading, signIn, signUp, signOut, refreshProfile }}>
+    <AuthContext.Provider
+      value={{
+        session,
+        user,
+        profile,
+        profileLoading,
+        signIn,
+        signUp,
+        signOut,
+        refreshProfile,
+        lockSchedule,
+        unlockSchedule,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

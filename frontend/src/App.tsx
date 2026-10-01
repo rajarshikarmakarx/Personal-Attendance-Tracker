@@ -4,12 +4,12 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
 import Dashboard from './pages/Dashboard';
 import Today from './pages/Today';
+import SchedulePage from './pages/SchedulePage';
 import History from './pages/History';
 import Statistics from './pages/Statistics';
 import SubjectDetail from './pages/SubjectDetail';
 import LandingPage from './pages/LandingPage';
 import AuthPage from './pages/AuthPage';
-import GroupSetupPage from './pages/GroupSetupPage';
 
 const toastStyles = {
   style: {
@@ -88,16 +88,6 @@ function AppRoutes() {
     );
   }
 
-  // Logged in but no group set → Group setup
-  if (!profile) {
-    return (
-      <Routes>
-        <Route path="/setup" element={<GroupSetupPage />} />
-        <Route path="*" element={<Navigate to="/setup" replace />} />
-      </Routes>
-    );
-  }
-
   // Fully authenticated with profile → Main app
   return (
     <Routes>
@@ -111,6 +101,7 @@ function AppRoutes() {
               <Routes>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/today" element={<Today />} />
+                <Route path="/schedule" element={<SchedulePage />} />
                 <Route path="/history" element={<History />} />
                 <Route path="/statistics" element={<Statistics />} />
                 <Route path="/subjects/:subjectId" element={<SubjectDetail />} />

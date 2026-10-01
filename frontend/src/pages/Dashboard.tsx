@@ -1,10 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { getSchedule, getOverallStats, getSubjectStats, getTeacherStats } from '../api/client';
 import type { ScheduleEntry, OverallStats, SubjectStats, TeacherStats, AttendanceStatus } from '../types/attendance';
 import AttendanceCard from '../components/AttendanceCard';
 import SubjectCard from '../components/SubjectCard';
+import WeeklyScheduleBuilder from '../components/WeeklyScheduleBuilder';
+import { useAuth } from '../contexts/AuthContext';
 import { format, todayStr } from '../utils/date';
 
 /* ── Presently theme tokens ── */
@@ -81,6 +83,9 @@ const cardStyle = {
 
 export default function Dashboard() {
   const today = todayStr();
+  const { profile, unlockSchedule, refreshProfile } = useAuth();
+  const navigate = useNavigate();
+
   const [schedule, setSchedule] = useState<ScheduleEntry[]>([]);
   const [overall, setOverall] = useState<OverallStats | null>(null);
   const [subjectStats, setSubjectStats] = useState<SubjectStats[]>([]);
@@ -106,7 +111,13 @@ export default function Dashboard() {
     }
   }, [today]);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    if (profile?.schedule_locked) {
+      loadData();
+    } else {
+      setLoading(false);
+    }
+  }, [profile?.schedule_locked, loadData]);
 
   const handleAttendanceUpdate = useCallback((entryId: number, newStatus: AttendanceStatus, attendanceId: number | null) => {
     setSchedule(prev =>
@@ -123,6 +134,21 @@ export default function Dashboard() {
     });
   }, []);
 
+  const handleScheduleSaved = async () => {
+    setLoading(true);
+    await refreshProfile();
+    await loadData();
+  };
+
+  const handleEditSchedule = async () => {
+    try {
+      await unlockSchedule();
+      navigate('/schedule');
+    } catch {
+      navigate('/schedule');
+    }
+  };
+
   const marked    = schedule.filter(e => e.status !== 'UNMARKED').length;
   const present   = schedule.filter(e => e.status === 'PRESENT').length;
   const absent    = schedule.filter(e => e.status === 'ABSENT').length;
@@ -137,24 +163,75 @@ export default function Dashboard() {
     );
   }
 
+  // If schedule is not locked in, show the interactive Weekly Schedule Builder directly on Dashboard!
+  if (!profile?.schedule_locked) {
+    return (
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '34px 24px 60px' }}>
+        <WeeklyScheduleBuilder onSaved={handleScheduleSaved} isInitialSetup={true} />
+      </div>
+    );
+  }
+
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '34px 24px 60px' }}>
-      {/* Header */}
-      <div style={{ marginBottom: 32, animation: 'driftUp 0.7s cubic-bezier(0.16,1,0.3,1) both' }}>
-        <div
+      {/* Header with Title and "Edit Schedule" Quick Action */}
+      <div
+        style={{
+          marginBottom: 32,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          flexWrap: 'wrap',
+          gap: 16,
+          animation: 'driftUp 0.7s cubic-bezier(0.16,1,0.3,1) both',
+        }}
+      >
+        <div>
+          <div
+            style={{
+              fontFamily: "'Fraunces', serif",
+              fontSize: 'clamp(26px,3vw,34px)',
+              fontWeight: 500,
+              color: C.cream,
+              letterSpacing: '-0.5px',
+            }}
+          >
+            Overview
+          </div>
+          <div style={{ fontSize: 13, color: C.muted, marginTop: 4, fontFamily: "'JetBrains Mono', monospace" }}>
+            {format(today, 'EEEE, d MMMM yyyy')}
+          </div>
+        </div>
+
+        <button
+          id="btn-edit-schedule-dashboard"
+          onClick={handleEditSchedule}
           style={{
-            fontFamily: "'Fraunces', serif",
-            fontSize: 'clamp(26px,3vw,34px)',
-            fontWeight: 500,
-            color: C.cream,
-            letterSpacing: '-0.5px',
+            padding: '8px 16px',
+            borderRadius: 10,
+            background: 'rgba(255,255,255,0.03)',
+            border: `1px solid ${C.hairline}`,
+            color: C.soft,
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: 'pointer',
+            fontFamily: "'Inter', sans-serif",
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.borderColor = C.gold;
+            e.currentTarget.style.color = C.gold;
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.borderColor = C.hairline;
+            e.currentTarget.style.color = C.soft;
           }}
         >
-          Overview
-        </div>
-        <div style={{ fontSize: 13, color: C.muted, marginTop: 4, fontFamily: "'JetBrains Mono', monospace" }}>
-          {format(today, 'EEEE, d MMMM yyyy')}
-        </div>
+          ✏️ Edit Schedule
+        </button>
       </div>
 
       {/* Top Stat Cards Grid */}
@@ -215,29 +292,34 @@ export default function Dashboard() {
                 {format(today, 'EEE, d MMM')}
               </div>
             </div>
-            <Link
-              to="/today"
-              id="link-mark-today"
-              style={{
-                fontSize: 12,
-                fontWeight: 700,
-                color: C.gold,
-                textDecoration: 'none',
-                padding: '5px 14px',
-                borderRadius: 999,
-                border: `1px solid rgba(227,183,106,0.3)`,
-                background: C.goldDim,
-                transition: 'all 0.2s ease',
-                fontFamily: "'Inter', sans-serif",
-              }}
-            >
-              Mark →
-            </Link>
+            {schedule.length > 0 && (
+              <Link
+                to="/today"
+                id="link-mark-today"
+                style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: C.gold,
+                  textDecoration: 'none',
+                  padding: '5px 14px',
+                  borderRadius: 999,
+                  border: `1px solid rgba(227,183,106,0.3)`,
+                  background: C.goldDim,
+                  transition: 'all 0.2s ease',
+                  fontFamily: "'Inter', sans-serif",
+                }}
+              >
+                Mark →
+              </Link>
+            )}
           </div>
 
           {schedule.length === 0 ? (
             <div style={{ color: C.muted, fontSize: 13, padding: '16px 0', fontFamily: "'Inter', sans-serif" }}>
-              No classes scheduled today
+              No classes scheduled for today.{' '}
+              <Link to="/schedule" style={{ color: C.gold, textDecoration: 'none', fontWeight: 500 }}>
+                View full week →
+              </Link>
             </div>
           ) : (
             <>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -16,6 +16,8 @@ const C = {
   gold:        '#e3b76a',
   goldSoft:    '#f0cd8f',
   goldDim:     'rgba(227,183,106,0.14)',
+  green:       '#5bbf8a',
+  greenDim:    'rgba(91,191,138,0.12)',
 };
 
 const links = [
@@ -30,6 +32,12 @@ const links = [
       <rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" strokeWidth="1.5"/>
       <path d="M2 7H14" stroke="currentColor" strokeWidth="1.5"/>
       <path d="M5.5 1.5V4.5M10.5 1.5V4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  )},
+  { to: '/schedule', label: 'Schedule', id: 'nav-schedule', icon: (
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+      <path d="M3 4H13C13.5523 4 14 4.44772 14 5V13C14 13.5523 13.5523 14 13 14H3C2.44772 14 2 13.5523 2 13V5C2 4.44772 2.44772 4 3 4Z" stroke="currentColor" strokeWidth="1.5"/>
+      <path d="M5 2V4M11 2V4M2 7H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
     </svg>
   )},
   { to: '/history', label: 'History', id: 'nav-history', icon: (
@@ -48,12 +56,25 @@ const links = [
 ];
 
 export default function Navbar() {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, unlockSchedule } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleSignOut = async () => {
     await signOut();
     toast.success('Signed out');
+  };
+
+  const handleEditScheduleClick = async () => {
+    if (profile?.schedule_locked) {
+      try {
+        await unlockSchedule();
+        toast('Schedule unlocked for editing', { icon: '✏️' });
+      } catch {
+        // proceed
+      }
+    }
+    navigate('/schedule');
   };
 
   return (
@@ -160,23 +181,31 @@ export default function Navbar() {
 
           {/* Right side */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            {/* Group badge */}
+            {/* Schedule Status & Edit Action */}
             {profile && (
-              <div
+              <button
+                id="btn-nav-schedule-action"
+                onClick={handleEditScheduleClick}
                 style={{
-                  padding: '3px 10px',
+                  padding: '5px 12px',
                   borderRadius: 'var(--radius-full)',
-                  background: 'rgba(227,183,106,0.1)',
-                  border: '1px solid rgba(227,183,106,0.28)',
+                  background: profile.schedule_locked ? 'rgba(227,183,106,0.1)' : 'rgba(91,191,138,0.12)',
+                  border: profile.schedule_locked ? '1px solid rgba(227,183,106,0.28)' : '1px solid rgba(91,191,138,0.3)',
                   fontSize: 11,
                   fontWeight: 700,
-                  color: C.gold,
+                  color: profile.schedule_locked ? C.gold : C.green,
                   letterSpacing: '0.3px',
                   fontFamily: "'JetBrains Mono', monospace",
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  transition: 'all 0.2s ease',
                 }}
+                title={profile.schedule_locked ? 'Click to edit weekly schedule' : 'Editing weekly schedule'}
               >
-                Gr.{profile.group_number}
-              </div>
+                {profile.schedule_locked ? '✏️ Edit Schedule' : '🔓 Edit Mode'}
+              </button>
             )}
 
             {/* User email */}

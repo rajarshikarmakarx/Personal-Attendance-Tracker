@@ -1,0 +1,9 @@
+feat: implement custom weekly schedule builder and lock/edit workflow
+
+- Replace legacy hardcoded college groups with multi-tenant user-owned data model
+- Overhaul database schema and migration with full Supabase Row-Level Security (RLS)
+- Add atomic batch timetable sync and profile lock/unlock endpoints on FastAPI backend
+- Create interactive WeeklyScheduleBuilder component with day tabs, slot management, and sample presets
+- Add dedicated SchedulePage (/schedule) and integrate dynamic lock/edit workflow into Dashboard & Navbar
+- Remove obsolete GroupSetupPage and streamline user onboarding
+- Add start.sh script to concurrently launch FastAPI backend and Vite frontend

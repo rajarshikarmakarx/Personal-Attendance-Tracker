@@ -8,13 +8,16 @@ export type ClassType = 'L' | 'T' | 'LAB';
 
 export interface Subject {
   id: number;
+  user_id?: string;
   name: string;
-  code: string;
+  code?: string | null;
   short_name: string;
+  color?: string | null;
+  created_at?: string;
 }
 
 export interface Teacher {
-  id: number;
+  id?: number;
   name: string;
 }
 
@@ -23,11 +26,39 @@ export interface TimetableEntry {
   weekday: Weekday;
   start_time: string;
   end_time: string;
-  room: string | null;
-  period_number: number | null;
+  room?: string | null;
+  period_number?: number | null;
   class_type: ClassType;
   subject: Subject;
-  teacher: Teacher;
+  teacher?: Teacher | null;
+  teacher_name?: string | null;
+}
+
+export interface TimetableSlotInput {
+  weekday: Weekday;
+  start_time: string;
+  end_time: string;
+  subject_name: string;
+  subject_code?: string;
+  short_name?: string;
+  teacher_name?: string;
+  room?: string;
+  class_type?: ClassType;
+  period_number?: number;
+}
+
+export interface TimetableBatchSave {
+  slots: TimetableSlotInput[];
+  lock_schedule?: boolean;
+}
+
+// ── Profile ───────────────────────────────────────────────────────────────────
+
+export interface Profile {
+  user_id: string;
+  email: string;
+  schedule_locked: boolean;
+  created_at: string;
 }
 
 // ── Schedule ──────────────────────────────────────────────────────────────────
@@ -35,15 +66,16 @@ export interface TimetableEntry {
 export interface ScheduleEntry {
   timetable_entry_id: number;
   subject: Subject;
-  teacher: Teacher;
+  teacher?: Teacher | null;
+  teacher_name?: string | null;
   start_time: string;
   end_time: string;
-  room: string | null;
+  room?: string | null;
   class_type: ClassType;
-  period_number: number | null;
+  period_number?: number | null;
   status: AttendanceStatus;
   attendance_id: number | null;
-  notes: string | null;
+  notes?: string | null;
 }
 
 // ── Attendance ────────────────────────────────────────────────────────────────
@@ -78,7 +110,7 @@ export interface OverallStats {
 export interface SubjectStats {
   subject_id: number;
   subject_name: string;
-  subject_code: string;
+  subject_code?: string | null;
   subject_short_name: string;
   present: number;
   absent: number;
@@ -88,11 +120,11 @@ export interface SubjectStats {
 }
 
 export interface TeacherStats {
-  teacher_id: number;
+  teacher_id?: number | null;
   teacher_name: string;
   subject_id: number;
   subject_name: string;
-  subject_code: string;
+  subject_code?: string | null;
   present: number;
   absent: number;
   cancelled: number;
